@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dashboard - EMPOWER SAFE">
+  <title>Dashboard - EMPOWER SAFE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <ul class="navbar-menu">
+        <li><a href="/dashboard.html">Home</a></li>
+        <li><a href="/features.html">Features</a></li>
+        <li><a href="/contacts.html">Contacts</a></li>
+        <li><a href="/profile.html">Profile</a></li>
+        <li><a href="/history.html">History</a></li>
+        <li><button id="logoutBtn" class="btn btn-sm btn-danger">Logout</button></li>
+      </ul>
+      <button class="navbar-toggle">☰</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-content">
+      <div class="container">
+        <!-- Welcome Section -->
+        <div class="card" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; margin-top: var(--spacing-2xl); margin-bottom: var(--spacing-2xl);">
+          <h2 id="welcomeName" style="color: white; margin: 0 0 var(--spacing-sm) 0;">Welcome back!</h2>
+          <p id="welcomeTime" style="color: rgba(255, 255, 255, 0.9); margin: 0;">It's a safe day. Stay vigilant!</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <section>
+          <h3 style="margin-bottom: var(--spacing-lg);">Quick Actions</h3>
+          <div class="grid grid-3">
+            <a href="/contacts.html" class="card" style="text-align: center; text-decoration: none; color: inherit; display: grid; gap: var(--spacing-md); align-items: center;">
+              <div style="font-size: 2.5rem;">👥</div>
+              <div>
+                <h4 style="margin: 0;">Emergency Contacts</h4>
+                <p style="margin: 0; font-size: 0.875rem;" id="contactCount">Loading...</p>
+              </div>
+            </a>
+
+            <a href="/profile.html" class="card" style="text-align: center; text-decoration: none; color: inherit; display: grid; gap: var(--spacing-md); align-items: center;">
+              <div style="font-size: 2.5rem;">⚙️</div>
+              <div>
+                <h4 style="margin: 0;">Safety Settings</h4>
+                <p style="margin: 0; font-size: 0.875rem;">Manage preferences</p>
+              </div>
+            </a>
+
+            <a href="/history.html" class="card" style="text-align: center; text-decoration: none; color: inherit; display: grid; gap: var(--spacing-md); align-items: center;">
+              <div style="font-size: 2.5rem;">📋</div>
+              <div>
+                <h4 style="margin: 0;">Incident History</h4>
+                <p style="margin: 0; font-size: 0.875rem;" id="incidentCount">Loading...</p>
+              </div>
+            </a>
+          </div>
+        </section>
+
+        <!-- SOS Section -->
+        <section class="mt-lg">
+          <div style="text-align: center;">
+            <p style="margin-bottom: var(--spacing-md); color: var(--text-light);">In an emergency, tap the button below</p>
+            <button id="sosBtn" class="sos-button" aria-label="Trigger SOS Emergency Alert">
+              <span>SOS</span>
+              <small style="font-size: 0.6em; opacity: 0.8;">TAP</small>
+            </button>
+            <p style="margin-top: var(--spacing-lg); color: var(--text-light); font-size: 0.875rem;">
+              ⚠️ This will alert all your emergency contacts with your location
+            </p>
+          </div>
+
+          <!-- SOS Confirmation Modal -->
+          <div id="sosModal" class="modal">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 style="color: var(--danger);">⚠️ Confirm SOS Alert</h4>
+              </div>
+              <p>You're about to send an emergency alert to all your contacts. Your location will be shared with them.</p>
+              
+              <div id="sosAlerts"></div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="UI.closeModal('sosModal')">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmSosBtn">Send SOS Alert</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="alerts"></div>
+        </section>
+
+        <!-- Status Cards -->
+        <section class="mt-lg">
+          <h3 style="margin-bottom: var(--spacing-lg);">System Status</h3>
+          <div class="grid grid-2">
+            <div class="card">
+              <div class="flex-between">
+                <div>
+                  <h4 style="margin: 0 0 var(--spacing-xs) 0;">Device Status</h4>
+                  <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">NFC & Geolocation</p>
+                </div>
+                <span id="deviceStatus" class="badge badge-success">Active</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="flex-between">
+                <div>
+                  <h4 style="margin: 0 0 var(--spacing-xs) 0;">Contacts Added</h4>
+                  <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);" id="contactStatusText">Loading...</p>
+                </div>
+                <span id="contactStatus" class="badge badge-warning">Loading</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="mt-lg">
+          <h3 style="margin-bottom: var(--spacing-lg);">Recent Activity</h3>
+          <div id="recentActivity" class="card">
+            <p class="text-center text-muted" style="margin: 0;">No recent activity</p>
+          </div>
+        </section>
+
+        <!-- Interactive Safety Features -->
+        <section class="mt-lg">
+          <h3 style="margin-bottom: var(--spacing-lg);">Safety Features</h3>
+          <div class="grid grid-2">
+            <!-- Location Sharing -->
+            <div class="card" style="border-left: 4px solid var(--primary); cursor: pointer;" id="locationCard">
+              <div class="flex-between">
+                <div>
+                  <h4 style="margin-top: 0;">📍 Location Sharing</h4>
+                  <p style="margin-bottom: var(--spacing-sm);">Auto-share location with SOS alerts</p>
+                </div>
+                <div>
+                  <span id="locationStatus" class="badge badge-success">Enabled</span>
+                </div>
+              </div>
+              <button id="toggleLocationBtn" class="btn btn-sm btn-primary" style="width: 100%;">Configure</button>
+            </div>
+
+            <!-- Update Contacts -->
+            <div class="card" style="border-left: 4px solid var(--success); cursor: pointer;" onclick="window.location.href='/contacts.html'">
+              <div class="flex-between">
+                <div>
+                  <h4 style="margin-top: 0;">👥 Emergency Contacts</h4>
+                  <p style="margin-bottom: var(--spacing-sm);">Manage your trusted contacts list</p>
+                </div>
+                <div>
+                  <span id="contactsBadge" class="badge badge-primary">0</span>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-success" style="width: 100%;">Manage Contacts</button>
+            </div>
+
+            <!-- Enable Notifications -->
+            <div class="card" style="border-left: 4px solid var(--accent); cursor: pointer;" id="notificationCard">
+              <div class="flex-between">
+                <div>
+                  <h4 style="margin-top: 0;">📱 Push Notifications</h4>
+                  <p style="margin-bottom: var(--spacing-sm);">Get instant emergency alerts</p>
+                </div>
+                <div>
+                  <span id="notificationStatus" class="badge badge-warning">Check</span>
+                </div>
+              </div>
+              <button id="enableNotificationsBtn" class="btn btn-sm btn-primary" style="width: 100%;">Enable Now</button>
+            </div>
+
+            <!-- Safety Tips -->
+            <div class="card" style="border-left: 4px solid var(--warning); cursor: pointer;" id="tipsCard">
+              <div>
+                <h4 style="margin-top: 0;">🔔 Safety Tips</h4>
+                <p style="margin-bottom: var(--spacing-sm);">View important safety guidelines</p>
+              </div>
+              <button class="btn btn-sm btn-ghost" style="width: 100%;">View Tips</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Safety Tips Modal -->
+        <div id="tipsModal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>🔔 Safety Tips & Guidelines</h3>
+              <button class="modal-close" onclick="UI.closeModal('tipsModal')">×</button>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+              <div style="margin-bottom: var(--spacing-lg);">
+                <h4>🚨 During Emergency:</h4>
+                <ul style="padding-left: var(--spacing-lg); color: var(--text-light);">
+                  <li>Press SOS button immediately</li>
+                  <li>Stay calm and find a safe location</li>
+                  <li>Keep your phone with you at all times</li>
+                  <li>Follow instructions from emergency contacts</li>
+                  <li>Call 100 (Police) or 112 (Emergency) if needed</li>
+                </ul>
+              </div>
+              <div style="margin-bottom: var(--spacing-lg);">
+                <h4>📍 Location Sharing:</h4>
+                <ul style="padding-left: var(--spacing-lg); color: var(--text-light);">
+                  <li>Always keep location services enabled</li>
+                  <li>Ensure GPS is accurate before traveling</li>
+                  <li>Keep your phone charged above 20%</li>
+                  <li>Share live location when in unfamiliar areas</li>
+                </ul>
+              </div>
+              <div style="margin-bottom: var(--spacing-lg);">
+                <h4>👥 Emergency Contacts:</h4>
+                <ul style="padding-left: var(--spacing-lg); color: var(--text-light);">
+                  <li>Add at least 3 trusted contacts</li>
+                  <li>Include family, friends, and neighbors</li>
+                  <li>Verify phone numbers are correct</li>
+                  <li>Update contact list regularly</li>
+                  <li>Inform contacts they're in your emergency list</li>
+                </ul>
+              </div>
+              <div style="margin-bottom: var(--spacing-lg);">
+                <h4>🛡️ Stay Vigilant:</h4>
+                <ul style="padding-left: var(--spacing-lg); color: var(--text-light);">
+                  <li>Trust your instincts - if it feels wrong, leave</li>
+                  <li>Avoid isolated or poorly lit areas</li>
+                  <li>Share your travel plans with someone</li>
+                  <li>Keep emergency numbers saved</li>
+                  <li>Stay aware of your surroundings</li>
+                  <li>Don't share personal details with strangers</li>
+                </ul>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" onclick="UI.closeModal('tipsModal')">Got it!</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <p>&copy; 2026 EMPOWER SAFE. Available 24/7 for your safety.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      Auth.redirectToLogin();
+
+      const user = Auth.getUser();
+      const sosBtn = DOM.get('#sosBtn');
+      const logoutBtn = DOM.get('#logoutBtn');
+      const sosModal = DOM.get('#sosModal');
+      const confirmSosBtn = DOM.get('#confirmSosBtn');
+      const alerts = DOM.get('#alerts');
+      const welcomeName = DOM.get('#welcomeName');
+      const sosAlerts = DOM.get('#sosAlerts');
+      const toggleLocationBtn = DOM.get('#toggleLocationBtn');
+      const enableNotificationsBtn = DOM.get('#enableNotificationsBtn');
+      const tipsCard = DOM.get('#tipsCard');
+
+      let userProfile = null;
+
+      // Update welcome message
+      if (user) {
+        const hour = new Date().getHours();
+        const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+        DOM.setText(welcomeName, `${greeting}, ${user.name}!`);
+      }
+
+      // Load user data
+      try {
+        const profileData = await api.getUserProfile();
+        userProfile = profileData.user;
+        
+        // Update contact counts
+        const contactCount = userProfile.emergencyContacts?.length || 0;
+        DOM.setText(DOM.get('#contactStatusText'), `${contactCount} contacts`);
+        DOM.setText(DOM.get('#contactCount'), `${contactCount} contacts`);
+        DOM.setText(DOM.get('#contactsBadge'), contactCount.toString());
+        
+        const contactStatus = DOM.get('#contactStatus');
+        if (contactStatus) {
+          contactStatus.className = contactCount >= 2 ? 'badge badge-success' : 'badge badge-warning';
+        }
+
+        // Update location status
+        const locationStatus = DOM.get('#locationStatus');
+        if (userProfile.autoLocationSharing) {
+          locationStatus.className = 'badge badge-success';
+          DOM.setText(locationStatus, 'Enabled');
+        } else {
+          locationStatus.className = 'badge badge-warning';
+          DOM.setText(locationStatus, 'Disabled');
+        }
+
+        // Update notification status
+        checkNotificationPermission();
+
+        // Load incidents
+        const incidentData = await api.getIncidents();
+        DOM.setText(DOM.get('#incidentCount'), `${incidentData.incidents?.length || 0} incidents`);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      }
+
+      // Check notification permission
+      function checkNotificationPermission() {
+        const notificationStatus = DOM.get('#notificationStatus');
+        
+        if (!('Notification' in window)) {
+          DOM.setText(notificationStatus, 'Not Supported');
+          notificationStatus.className = 'badge badge-danger';
+          DOM.setAttr(enableNotificationsBtn, 'disabled', '');
+          return;
+        }
+
+        if (Notification.permission === 'granted') {
+          DOM.setText(notificationStatus, 'Enabled');
+          notificationStatus.className = 'badge badge-success';
+          DOM.setText(enableNotificationsBtn, 'Enabled ✓');
+        } else if (Notification.permission === 'denied') {
+          DOM.setText(notificationStatus, 'Blocked');
+          notificationStatus.className = 'badge badge-danger';
+          DOM.setText(enableNotificationsBtn, 'Check Settings');
+        } else {
+          DOM.setText(notificationStatus, 'Disabled');
+          notificationStatus.className = 'badge badge-warning';
+          DOM.setText(enableNotificationsBtn, 'Enable Now');
+        }
+      }
+
+      // Toggle Location Sharing
+      DOM.on(toggleLocationBtn, 'click', async (e) => {
+        e.stopPropagation();
+        
+        if (!userProfile) return;
+
+        const newStatus = !userProfile.autoLocationSharing;
+        
+        try {
+          await api.updateProfile({
+            autoLocationSharing: newStatus,
+          });
+
+          userProfile.autoLocationSharing = newStatus;
+          
+          const locationStatus = DOM.get('#locationStatus');
+          if (newStatus) {
+            locationStatus.className = 'badge badge-success';
+            DOM.setText(locationStatus, 'Enabled');
+            UI.showSuccess('Location sharing enabled', alerts);
+          } else {
+            locationStatus.className = 'badge badge-warning';
+            DOM.setText(locationStatus, 'Disabled');
+            UI.showSuccess('Location sharing disabled', alerts);
+          }
+        } catch (error) {
+          UI.showError('Failed to update location setting', alerts);
+        }
+      });
+
+      // Enable Notifications
+      DOM.on(enableNotificationsBtn, 'click', async (e) => {
+        e.stopPropagation();
+
+        if (!('Notification' in window)) {
+          UI.showError('Notifications not supported by your browser', alerts);
+          return;
+        }
+
+        if (Notification.permission === 'denied') {
+          UI.showError('Notifications are blocked. Please enable them in browser settings.', alerts);
+          return;
+        }
+
+        if (Notification.permission === 'granted') {
+          // Test notification
+          new Notification('EMPOWER SAFE', {
+            body: 'Notifications are working! You will receive emergency alerts.',
+            icon: '🛡️',
+          });
+          UI.showSuccess('Notifications already enabled!', alerts);
+          return;
+        }
+
+        try {
+          const permission = await Notification.requestPermission();
+          
+          if (permission === 'granted') {
+            checkNotificationPermission();
+            
+            new Notification('EMPOWER SAFE', {
+              body: 'Notifications enabled successfully! You will receive emergency alerts.',
+              icon: '🛡️',
+            });
+
+            // Update profile
+            await api.updateProfile({ pushNotifications: true });
+            
+            UI.showSuccess('Notifications enabled successfully!', alerts);
+          } else {
+            UI.showError('Notification permission denied', alerts);
+          }
+        } catch (error) {
+          UI.showError('Failed to enable notifications', alerts);
+        }
+      });
+
+      // Show Safety Tips
+      DOM.on(tipsCard, 'click', () => {
+        UI.openModal('tipsModal');
+      });
+
+      // SOS Button
+      DOM.on(sosBtn, 'click', () => {
+        UI.openModal('sosModal');
+      });
+
+      DOM.on(sosModal, 'click', (e) => {
+        if (e.target === sosModal) UI.closeModal('sosModal');
+      });
+
+      // Confirm SOS
+      DOM.on(confirmSosBtn, 'click', async () => {
+        try {
+          DOM.setAttr(confirmSosBtn, 'disabled', '');
+
+          let location = null;
+          try {
+            location = await Location.getCurrentLocation();
+          } catch (err) {
+            console.warn('Could not get location:', err);
+          }
+
+          const response = await api.createSOS(
+            'Emergency SOS Alert from EMPOWER SAFE',
+            location
+          );
+
+          // Show browser notification
+          if (Notification.permission === 'granted') {
+            new Notification('🚨 SOS Alert Sent', {
+              body: 'Your emergency contacts have been notified with your location.',
+              icon: '🛡️',
+              requireInteraction: true,
+            });
+          }
+
+          UI.showSuccess('SOS alert sent! Emergency contacts have been notified.', sosAlerts);
+          
+          await delay(2000);
+          UI.closeModal('sosModal');
+          UI.showSuccess('Help is on the way. Stay safe!', alerts);
+        } catch (error) {
+          UI.showError(error.message || 'Failed to send SOS', sosAlerts);
+        } finally {
+          DOM.removeAttr(confirmSosBtn, 'disabled');
+        }
+      });
+
+      // Logout
+      DOM.on(logoutBtn, 'click', () => {
+        if (UI.showConfirm('Are you sure you want to logout?')) {
+          Auth.logout();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Login to EMPOWER SAFE">
+  <title>Login - EMPOWER SAFE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <button class="navbar-toggle">☰</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-content">
+      <div class="container-sm">
+        <div style="text-align: center; margin-bottom: var(--spacing-2xl);">
+          <h1>Welcome Back</h1>
+          <p>Sign in to your EMPOWER SAFE account</p>
+        </div>
+
+        <div class="card">
+          <form id="loginForm" style="display: grid; gap: var(--spacing-lg);">
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" required placeholder="you@example.com">
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" required placeholder="••••••••">
+              <a href="#" style="font-size: 0.875rem; margin-top: var(--spacing-xs); display: inline-block;">Forgot password?</a>
+            </div>
+
+            <div id="alerts"></div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+              <span id="btnText">Sign In</span>
+              <span id="btnLoader" class="hidden" style="margin-left: var(--spacing-sm);">
+                <span class="spinner"></span>
+              </span>
+            </button>
+          </form>
+
+          <div style="text-align: center; margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--border);">
+            <p>Don't have an account? <a href="/register.html"><strong>Create one</strong></a></p>
+          </div>
+        </div>
+
+        <div class="card mt-lg" style="background: rgba(16, 185, 129, 0.05); border-color: var(--success);">
+          <h4 style="color: var(--success);">🔒 Security First</h4>
+          <p style="margin: 0;">Your password is encrypted and never stored in plain text. We follow industry-standard security practices.</p>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <p>&copy; 2026 EMPOWER SAFE. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Redirect if already logged in
+      Auth.redirectToDashboard();
+
+      const form = DOM.get('#loginForm');
+      const emailInput = DOM.get('#email');
+      const passwordInput = DOM.get('#password');
+      const alertsContainer = DOM.get('#alerts');
+      const btnText = DOM.get('#btnText');
+      const btnLoader = DOM.get('#btnLoader');
+      const submitBtn = form.querySelector('button[type="submit"]');
+
+      // Form validation
+      const validateForm = () => {
+        let isValid = true;
+
+        // Email validation
+        if (!Validator.email(emailInput.value)) {
+          Validator.showError(emailInput, 'Please enter a valid email address');
+          isValid = false;
+        } else {
+          Validator.clearError(emailInput);
+        }
+
+        // Password validation
+        if (!Validator.required(passwordInput.value)) {
+          Validator.showError(passwordInput, 'Password is required');
+          isValid = false;
+        } else {
+          Validator.clearError(passwordInput);
+        }
+
+        return isValid;
+      };
+
+      // Form submission
+      DOM.on(form, 'submit', async (e) => {
+        e.preventDefault();
+
+        if (!validateForm()) return;
+
+        try {
+          DOM.setAttr(submitBtn, 'disabled', '');
+          DOM.hide(btnText);
+          DOM.show(btnLoader);
+
+          const response = await api.login(emailInput.value, passwordInput.value);
+
+          // Store user data
+          Auth.setUser(response.user);
+
+          UI.showSuccess('Login successful! Redirecting...', alertsContainer);
+
+          await delay(1500);
+          window.location.href = '/dashboard.html';
+        } catch (error) {
+          UI.showError(error.message || 'Login failed. Please check your credentials.', alertsContainer);
+        } finally {
+          DOM.removeAttr(submitBtn, 'disabled');
+          DOM.show(btnText);
+          DOM.hide(btnLoader);
+        }
+      });
+
+      // Real-time validation
+      DOM.on(emailInput, 'blur', () => {
+        if (emailInput.value && !Validator.email(emailInput.value)) {
+          Validator.showError(emailInput, 'Invalid email address');
+        } else {
+          Validator.clearError(emailInput);
+        }
+      });
+
+      DOM.on(passwordInput, 'blur', () => {
+        if (passwordInput.value && !Validator.required(passwordInput.value)) {
+          Validator.showError(passwordInput, 'Password is required');
+        } else {
+          Validator.clearError(passwordInput);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

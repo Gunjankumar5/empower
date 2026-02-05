@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Empower Safe Console</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7fb;
+        --card: #ffffff;
+        --text: #1f2a44;
+        --muted: #5d6b85;
+        --primary: #4f46e5;
+        --primary-strong: #4338ca;
+        --border: #e5e7f2;
+        --shadow: 0 10px 30px rgba(31, 42, 68, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 40px;
+        background: var(--card);
+        box-shadow: var(--shadow);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .brand {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+      }
+
+      .logo {
+        width: 52px;
+        height: 52px;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(135deg, #6366f1, #22c55e);
+        border-radius: 16px;
+      }
+
+      h1 {
+        margin: 0 0 4px 0;
+        font-size: 22px;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .status {
+        display: flex;
+        gap: 12px;
+      }
+
+      .nav {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .nav a {
+        text-decoration: none;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 13px;
+      }
+
+      .nav a:hover {
+        color: var(--primary);
+      }
+
+      .hero {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: 1.2fr 1fr;
+        align-items: center;
+        padding: 28px;
+        background: linear-gradient(135deg, #eef2ff, #ecfdf5);
+        border-radius: 18px;
+        border: 1px solid var(--border);
+      }
+
+      .hero h2 {
+        margin: 0 0 8px 0;
+        font-size: 28px;
+      }
+
+      .hero p {
+        font-size: 15px;
+      }
+
+      .hero .cta {
+        display: flex;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .pill {
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        background: #eef2ff;
+        color: #4338ca;
+        font-weight: 600;
+      }
+
+      .container {
+        padding: 32px 40px 80px;
+        display: grid;
+        gap: 20px;
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+      }
+
+      .card h2 {
+        margin-top: 0;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        align-items: end;
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        align-items: end;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #fbfbfe;
+        color: var(--text);
+        font-size: 14px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 11px 16px;
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .btn.primary {
+        background: var(--primary);
+        color: #fff;
+        border-color: transparent;
+      }
+
+      .btn.primary:hover {
+        background: var(--primary-strong);
+      }
+
+      .btn.ghost {
+        background: #f2f4ff;
+      }
+
+      .output {
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 16px;
+        border-radius: 12px;
+        font-size: 12px;
+        min-height: 70px;
+        overflow: auto;
+      }
+
+      .list {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .list-item {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        background: #fbfcff;
+      }
+
+      .list-item h4 {
+        margin: 0 0 6px 0;
+        font-size: 15px;
+      }
+
+      .list-item small {
+        color: var(--muted);
+      }
+
+      .feed {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 16px;
+      }
+
+      .note ul {
+        padding-left: 18px;
+        color: var(--muted);
+      }
+
+      @media (max-width: 900px) {
+        .topbar {
+          flex-direction: column;
+          gap: 16px;
+          align-items: flex-start;
+        }
+
+        .feed {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">ES</div>
+        <div>
+          <h1>Empower Safe Console</h1>
+          <p>Realtime monitoring · SOS management · Data access</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#home">Home</a>
+        <a href="#features">Features</a>
+        <a href="#sos">SOS</a>
+        <a href="#batch">Batch</a>
+        <a href="#latest">Latest</a>
+        <a href="#lookup">Lookup</a>
+        <a href="#status">Status</a>
+        <a href="#queries">Queries</a>
+        <a href="#datasets">Datasets</a>
+        <a href="#realtime">Realtime</a>
+      </nav>
+      <div class="status">
+        <span id="socketStatus" class="pill">Socket: Disconnected</span>
+        <span id="apiStatus" class="pill">API: Unknown</span>
+      </div>
+    </header>
+
+    <main class="container">
+      <section id="home" class="hero">
+        <div>
+          <h2>Safety operations in one live console</h2>
+          <p>
+            Monitor SOS alerts, manage emergency status updates, sync offline events, and pull
+            datasets in real-time. Every feature below is wired to the live backend APIs.
+          </p>
+          <div class="cta">
+            <a class="btn primary" href="#features">Explore Features</a>
+            <a class="btn" href="#realtime">Watch Realtime Feed</a>
+          </div>
+        </div>
+        <div class="card">
+          <h3>System status</h3>
+          <p>Keep your connection and realtime updates healthy.</p>
+          <div class="actions" style="margin-top: 12px;">
+            <button id="pingApi" class="btn">Ping API</button>
+            <button id="connectSocket" class="btn primary">Connect Socket</button>
+            <button id="disconnectSocket" class="btn ghost">Disconnect</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="card">
+        <h2>Features</h2>
+        <div class="grid-3">
+          <a class="btn" href="#connection">Connection</a>
+          <a class="btn" href="#quick">Quick endpoints</a>
+          <a class="btn" href="#sos">Create SOS</a>
+          <a class="btn" href="#batch">Batch sync</a>
+          <a class="btn" href="#latest">Latest emergencies</a>
+          <a class="btn" href="#lookup">Emergency lookup</a>
+          <a class="btn" href="#status">Update status</a>
+          <a class="btn" href="#queries">User queries</a>
+          <a class="btn" href="#datasets">Datasets</a>
+          <a class="btn" href="#realtime">Realtime feed</a>
+        </div>
+      </section>
+
+      <section id="connection" class="card">
+        <h2>Connection</h2>
+        <div class="grid-2">
+          <label class="field">
+            <span>API Base URL</span>
+            <input id="apiBase" type="text" placeholder="http://localhost:5000" />
+          </label>
+          <div class="actions">
+            <button id="pingApi" class="btn">Ping API</button>
+            <button id="connectSocket" class="btn primary">Connect Socket</button>
+            <button id="disconnectSocket" class="btn ghost">Disconnect</button>
+          </div>
+        </div>
+        <small>Tip: leave blank to use the current server origin.</small>
+      </section>
+
+      <section id="quick" class="card">
+        <h2>Quick Endpoints</h2>
+        <div class="grid-3">
+          <button data-endpoint="/api/auth" class="btn">/api/auth</button>
+          <button data-endpoint="/api/users" class="btn">/api/users</button>
+          <button data-endpoint="/api/nfc" class="btn">/api/nfc</button>
+        </div>
+        <pre id="quickOutput" class="output"></pre>
+      </section>
+
+      <section id="sos" class="card">
+        <h2>Create SOS</h2>
+        <div class="grid-3">
+          <label class="field">
+            <span>User ID</span>
+            <input id="sosUserId" type="text" placeholder="user_123" />
+          </label>
+          <label class="field">
+            <span>Message</span>
+            <input id="sosMessage" type="text" placeholder="Need help" />
+          </label>
+          <label class="field">
+            <span>Source</span>
+            <select id="sosSource">
+              <option value="online">online</option>
+              <option value="offline">offline</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Latitude</span>
+            <input id="sosLat" type="number" step="any" placeholder="12.9716" />
+          </label>
+          <label class="field">
+            <span>Longitude</span>
+            <input id="sosLng" type="number" step="any" placeholder="77.5946" />
+          </label>
+          <label class="field">
+            <span>Address</span>
+            <input id="sosAddress" type="text" placeholder="MG Road, Bengaluru" />
+          </label>
+        </div>
+        <label class="field">
+          <span>Metadata (JSON)</span>
+          <textarea id="sosMetadata" rows="3" placeholder='{"device":"android","battery":87}'></textarea>
+        </label>
+        <div class="actions">
+          <button id="sendSos" class="btn primary">Send SOS</button>
+          <button id="fillLocation" class="btn">Use My Location</button>
+        </div>
+        <pre id="sosOutput" class="output"></pre>
+      </section>
+
+      <section id="batch" class="card">
+        <h2>Batch Sync (Offline SOS)</h2>
+        <label class="field">
+          <span>Events JSON</span>
+          <textarea id="batchJson" rows="6"></textarea>
+        </label>
+        <div class="actions">
+          <button id="sendBatch" class="btn primary">Send Batch</button>
+          <button id="resetBatch" class="btn ghost">Reset Sample</button>
+        </div>
+        <pre id="batchOutput" class="output"></pre>
+      </section>
+
+      <section id="latest" class="card">
+        <h2>Latest Emergencies</h2>
+        <div class="grid-2">
+          <label class="field">
+            <span>Limit</span>
+            <input id="latestLimit" type="number" min="1" value="20" />
+          </label>
+          <div class="actions">
+            <button id="loadLatest" class="btn">Load Latest</button>
+            <button id="clearLatest" class="btn ghost">Clear</button>
+          </div>
+        </div>
+        <div id="latestList" class="list"></div>
+      </section>
+
+      <section id="lookup" class="card">
+        <h2>Emergency Lookup</h2>
+        <div class="grid-2">
+          <label class="field">
+            <span>Emergency ID</span>
+            <input id="lookupId" type="text" placeholder="ObjectId" />
+          </label>
+          <div class="actions">
+            <button id="lookupEmergency" class="btn">Fetch</button>
+          </div>
+        </div>
+        <pre id="lookupOutput" class="output"></pre>
+      </section>
+
+      <section id="status" class="card">
+        <h2>Update Status</h2>
+        <div class="grid-3">
+          <label class="field">
+            <span>Emergency ID</span>
+            <input id="statusId" type="text" placeholder="ObjectId" />
+          </label>
+          <label class="field">
+            <span>Status</span>
+            <select id="statusValue">
+              <option value="pending">pending</option>
+              <option value="acknowledged">acknowledged</option>
+              <option value="resolved">resolved</option>
+            </select>
+          </label>
+          <div class="actions">
+            <button id="updateStatus" class="btn primary">Update</button>
+          </div>
+        </div>
+        <pre id="statusOutput" class="output"></pre>
+      </section>
+
+      <section id="queries" class="card">
+        <h2>User Queries</h2>
+        <div class="grid-3">
+          <label class="field">
+            <span>User ID</span>
+            <input id="queryUserId" type="text" placeholder="optional" />
+          </label>
+          <label class="field">
+            <span>Question</span>
+            <input id="queryQuestion" type="text" placeholder="How do I..." />
+          </label>
+          <label class="field">
+            <span>Details</span>
+            <input id="queryDetails" type="text" placeholder="More context" />
+          </label>
+        </div>
+        <label class="field">
+          <span>Metadata (JSON)</span>
+          <textarea id="queryMetadata" rows="3" placeholder='{"topic":"safety"}'></textarea>
+        </label>
+        <div class="actions">
+          <button id="sendQuery" class="btn primary">Submit Query</button>
+          <button id="loadQueries" class="btn">Load Latest</button>
+        </div>
+        <pre id="queriesOutput" class="output"></pre>
+      </section>
+
+      <section id="datasets" class="card">
+        <h2>Datasets</h2>
+        <div class="grid-3">
+          <button data-dataset="/api/data/contacts" class="btn">Contacts</button>
+          <button data-dataset="/api/data/queries" class="btn">Queries</button>
+          <button data-dataset="/api/data/credentials" class="btn">Credentials</button>
+        </div>
+        <pre id="dataOutput" class="output"></pre>
+      </section>
+
+      <section id="realtime" class="card">
+        <h2>Realtime Feed</h2>
+        <div class="feed">
+          <div id="feedList" class="list"></div>
+          <div class="note">
+            <strong>Events:</strong>
+            <ul>
+              <li>new_sos (broadcast)</li>
+              <li>sos_status_update (user room)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Activity Log</h2>
+        <pre id="activityLog" class="output"></pre>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const apiBaseInput = document.getElementById("apiBase");
+      const pingBtn = document.getElementById("pingApi");
+      const socketStatus = document.getElementById("socketStatus");
+      const apiStatus = document.getElementById("apiStatus");
+      const connectSocketBtn = document.getElementById("connectSocket");
+      const disconnectSocketBtn = document.getElementById("disconnectSocket");
+
+      const quickOutput = document.getElementById("quickOutput");
+      const sosOutput = document.getElementById("sosOutput");
+      const batchOutput = document.getElementById("batchOutput");
+      const lookupOutput = document.getElementById("lookupOutput");
+      const statusOutput = document.getElementById("statusOutput");
+      const queriesOutput = document.getElementById("queriesOutput");
+      const dataOutput = document.getElementById("dataOutput");
+      const activityLog = document.getElementById("activityLog");
+
+      const feedList = document.getElementById("feedList");
+      const latestList = document.getElementById("latestList");
+
+      let socket = null;
+
+      const defaultApiBase = window.location.origin;
+      apiBaseInput.value = defaultApiBase;
+
+      const sampleBatch = [
+        {
+          userId: "user_101",
+          lat: 12.9716,
+          lng: 77.5946,
+          address: "Bengaluru",
+          message: "Lost offline signal",
+          source: "offline",
+          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+          metadata: { battery: 42 }
+        },
+        {
+          userId: "user_202",
+          lat: 28.6139,
+          lng: 77.209,
+          address: "Delhi",
+          message: "SOS queued",
+          source: "offline",
+          timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+          metadata: { network: "2g" }
+        }
+      ];
+
+      document.getElementById("batchJson").value = JSON.stringify(sampleBatch, null, 2);
+
+      const log = (message) => {
+        const ts = new Date().toLocaleTimeString();
+        activityLog.textContent = `[${ts}] ${message}\n` + activityLog.textContent;
+      };
+
+      const apiBase = () => apiBaseInput.value.trim() || defaultApiBase;
+
+      const apiFetch = async (path, options = {}) => {
+        const url = `${apiBase()}${path}`;
+        const res = await fetch(url, {
+          headers: { "Content-Type": "application/json" },
+          ...options
+        });
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = text;
+        }
+        if (!res.ok) {
+          throw new Error(data?.error || res.statusText);
+        }
+        return data;
+      };
+
+      const setOutput = (el, data) => {
+        el.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+      };
+
+      const updateApiStatus = (ok, detail = "") => {
+        apiStatus.textContent = ok ? "API: Online" : `API: Offline ${detail}`;
+        apiStatus.style.background = ok ? "#e0f2fe" : "#fee2e2";
+        apiStatus.style.color = ok ? "#0369a1" : "#991b1b";
+      };
+
+      const updateSocketStatus = (connected) => {
+        socketStatus.textContent = connected ? "Socket: Connected" : "Socket: Disconnected";
+        socketStatus.style.background = connected ? "#dcfce7" : "#fee2e2";
+        socketStatus.style.color = connected ? "#166534" : "#991b1b";
+      };
+
+      pingBtn.addEventListener("click", async () => {
+        try {
+          const data = await apiFetch("/");
+          updateApiStatus(true);
+          setOutput(quickOutput, data);
+          log("API ping success");
+        } catch (err) {
+          updateApiStatus(false, err.message);
+          setOutput(quickOutput, err.message);
+          log(`API ping failed: ${err.message}`);
+        }
+      });
+
+      connectSocketBtn.addEventListener("click", () => {
+        if (socket?.connected) return;
+        socket = io(apiBase(), { transports: ["websocket"] });
+        socket.on("connect", () => {
+          updateSocketStatus(true);
+          log("Socket connected");
+        });
+        socket.on("disconnect", () => {
+          updateSocketStatus(false);
+          log("Socket disconnected");
+        });
+        socket.on("new_sos", (payload) => {
+          log("Realtime: new_sos");
+          addFeedItem("New SOS", payload);
+        });
+        socket.on("sos_status_update", (payload) => {
+          log("Realtime: sos_status_update");
+          addFeedItem("Status Update", payload);
+        });
+      });
+
+      disconnectSocketBtn.addEventListener("click", () => {
+        if (socket) socket.disconnect();
+        updateSocketStatus(false);
+      });
+
+      // Quick endpoints
+      Array.from(document.querySelectorAll("[data-endpoint]")).forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          try {
+            const data = await apiFetch(btn.dataset.endpoint);
+            setOutput(quickOutput, data);
+            log(`Fetched ${btn.dataset.endpoint}`);
+          } catch (err) {
+            setOutput(quickOutput, err.message);
+            log(`Error ${btn.dataset.endpoint}: ${err.message}`);
+          }
+        });
+      });
+
+      // SOS
+      const sosUserId = document.getElementById("sosUserId");
+      const sosMessage = document.getElementById("sosMessage");
+      const sosSource = document.getElementById("sosSource");
+      const sosLat = document.getElementById("sosLat");
+      const sosLng = document.getElementById("sosLng");
+      const sosAddress = document.getElementById("sosAddress");
+      const sosMetadata = document.getElementById("sosMetadata");
+
+      const sendSosBtn = document.getElementById("sendSos");
+      const fillLocationBtn = document.getElementById("fillLocation");
+
+      sendSosBtn.addEventListener("click", async () => {
+        try {
+          const payload = {
+            userId: sosUserId.value.trim(),
+            message: sosMessage.value.trim(),
+            source: sosSource.value,
+            lat: sosLat.value ? Number(sosLat.value) : undefined,
+            lng: sosLng.value ? Number(sosLng.value) : undefined,
+            address: sosAddress.value.trim() || undefined,
+            metadata: parseJsonSafe(sosMetadata.value)
+          };
+          const data = await apiFetch("/api/emergency/sos", {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          setOutput(sosOutput, data);
+          log("SOS created");
+        } catch (err) {
+          setOutput(sosOutput, err.message);
+          log(`SOS failed: ${err.message}`);
+        }
+      });
+
+      fillLocationBtn.addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          log("Geolocation not supported");
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            sosLat.value = pos.coords.latitude;
+            sosLng.value = pos.coords.longitude;
+            log("Filled location from browser");
+          },
+          (err) => log(`Location error: ${err.message}`)
+        );
+      });
+
+      // Batch
+      const batchJson = document.getElementById("batchJson");
+      const sendBatchBtn = document.getElementById("sendBatch");
+      const resetBatchBtn = document.getElementById("resetBatch");
+
+      sendBatchBtn.addEventListener("click", async () => {
+        try {
+          const payload = parseJsonSafe(batchJson.value);
+          const data = await apiFetch("/api/emergency/batch", {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          setOutput(batchOutput, data);
+          log("Batch sync sent");
+        } catch (err) {
+          setOutput(batchOutput, err.message);
+          log(`Batch sync failed: ${err.message}`);
+        }
+      });
+
+      resetBatchBtn.addEventListener("click", () => {
+        batchJson.value = JSON.stringify(sampleBatch, null, 2);
+      });
+
+      // Latest
+      const loadLatestBtn = document.getElementById("loadLatest");
+      const clearLatestBtn = document.getElementById("clearLatest");
+      const latestLimit = document.getElementById("latestLimit");
+
+      loadLatestBtn.addEventListener("click", async () => {
+        try {
+          const limit = Number(latestLimit.value || 20);
+          const data = await apiFetch(`/api/emergency/latest?limit=${limit}`);
+          renderList(latestList, data, "Emergency");
+          log("Loaded latest emergencies");
+        } catch (err) {
+          latestList.textContent = err.message;
+          log(`Load latest failed: ${err.message}`);
+        }
+      });
+
+      clearLatestBtn.addEventListener("click", () => {
+        latestList.innerHTML = "";
+      });
+
+      // Lookup
+      const lookupId = document.getElementById("lookupId");
+      const lookupBtn = document.getElementById("lookupEmergency");
+
+      lookupBtn.addEventListener("click", async () => {
+        try {
+          const id = lookupId.value.trim();
+          if (!id) throw new Error("Emergency ID required");
+          const data = await apiFetch(`/api/emergency/${id}`);
+          setOutput(lookupOutput, data);
+          log("Fetched emergency by id");
+        } catch (err) {
+          setOutput(lookupOutput, err.message);
+          log(`Lookup failed: ${err.message}`);
+        }
+      });
+
+      // Update status
+      const statusId = document.getElementById("statusId");
+      const statusValue = document.getElementById("statusValue");
+      const updateStatusBtn = document.getElementById("updateStatus");
+
+      updateStatusBtn.addEventListener("click", async () => {
+        try {
+          const id = statusId.value.trim();
+          if (!id) throw new Error("Emergency ID required");
+          const data = await apiFetch(`/api/emergency/${id}/status`, {
+            method: "PATCH",
+            body: JSON.stringify({ status: statusValue.value })
+          });
+          setOutput(statusOutput, data);
+          log("Status updated");
+        } catch (err) {
+          setOutput(statusOutput, err.message);
+          log(`Status update failed: ${err.message}`);
+        }
+      });
+
+      // Queries
+      const queryUserId = document.getElementById("queryUserId");
+      const queryQuestion = document.getElementById("queryQuestion");
+      const queryDetails = document.getElementById("queryDetails");
+      const queryMetadata = document.getElementById("queryMetadata");
+      const sendQueryBtn = document.getElementById("sendQuery");
+      const loadQueriesBtn = document.getElementById("loadQueries");
+
+      sendQueryBtn.addEventListener("click", async () => {
+        try {
+          const payload = {
+            userId: queryUserId.value.trim() || undefined,
+            question: queryQuestion.value.trim(),
+            details: queryDetails.value.trim() || undefined,
+            metadata: parseJsonSafe(queryMetadata.value)
+          };
+          const data = await apiFetch("/api/queries", {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          setOutput(queriesOutput, data);
+          log("Query submitted");
+        } catch (err) {
+          setOutput(queriesOutput, err.message);
+          log(`Query failed: ${err.message}`);
+        }
+      });
+
+      loadQueriesBtn.addEventListener("click", async () => {
+        try {
+          const data = await apiFetch("/api/queries/latest");
+          setOutput(queriesOutput, data);
+          log("Loaded latest queries");
+        } catch (err) {
+          setOutput(queriesOutput, err.message);
+          log(`Load queries failed: ${err.message}`);
+        }
+      });
+
+      // Datasets
+      Array.from(document.querySelectorAll("[data-dataset]")).forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          try {
+            const data = await apiFetch(btn.dataset.dataset);
+            setOutput(dataOutput, data);
+            log(`Loaded ${btn.dataset.dataset}`);
+          } catch (err) {
+            setOutput(dataOutput, err.message);
+            log(`Dataset error: ${err.message}`);
+          }
+        });
+      });
+
+      function addFeedItem(title, payload) {
+        const item = document.createElement("div");
+        item.className = "list-item";
+        const heading = document.createElement("h4");
+        heading.textContent = title;
+        const body = document.createElement("pre");
+        body.className = "output";
+        body.textContent = JSON.stringify(payload, null, 2);
+        item.appendChild(heading);
+        item.appendChild(body);
+        feedList.prepend(item);
+      }
+
+      function renderList(container, items, label) {
+        container.innerHTML = "";
+        if (!items?.length) {
+          container.textContent = "No records";
+          return;
+        }
+        items.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "list-item";
+          const title = document.createElement("h4");
+          title.textContent = `${label} ${item._id || ""}`;
+          const meta = document.createElement("small");
+          meta.textContent = `User: ${item.userId || "-"} · Status: ${item.status || "-"} · Source: ${item.source || "-"}`;
+          const body = document.createElement("pre");
+          body.className = "output";
+          body.textContent = JSON.stringify(item, null, 2);
+          card.appendChild(title);
+          card.appendChild(meta);
+          card.appendChild(body);
+          container.appendChild(card);
+        });
+      }
+
+      function parseJsonSafe(value) {
+        if (!value || !value.trim()) return undefined;
+        try {
+          return JSON.parse(value);
+        } catch (err) {
+          log(`Invalid JSON: ${err.message}`);
+          return undefined;
+        }
+      }
+
+      updateSocketStatus(false);
+      updateApiStatus(false);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Features - EMPOWER SAFE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <ul class="navbar-menu">
+        <li><a href="/dashboard.html">Dashboard</a></li>
+        <li><a href="/features.html">Features</a></li>
+        <li><a href="/contacts.html">Contacts</a></li>
+        <li><a href="/profile.html">Profile</a></li>
+        <li><button id="logoutBtn" class="btn btn-sm btn-danger">Logout</button></li>
+      </ul>
+      <button class="navbar-toggle">☰</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-content">
+      <div class="container">
+        <h1>Advanced Safety Features</h1>
+        <p class="text-muted">Configure and activate powerful safety tools</p>
+
+        <div id="alerts"></div>
+
+        <!-- Quick SOS Options -->
+        <section class="mt-lg">
+          <h2>Emergency Triggers</h2>
+          <div class="grid grid-2">
+            <!-- Shake to Alert -->
+            <div class="card">
+              <div class="flex-between">
+                <div>
+                  <h3 style="margin: 0 0 var(--spacing-xs) 0;">🤳 Shake to Alert</h3>
+                  <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Shake phone rapidly to trigger SOS</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="shakeToggle">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <p style="margin-top: var(--spacing-md); font-size: 0.875rem;">Useful when you can't reach the button. Shake your phone 3 times quickly.</p>
+            </div>
+
+            <!-- Stealth Mode -->
+            <div class="card">
+              <div class="flex-between">
+                <div>
+                  <h3 style="margin: 0 0 var(--spacing-xs) 0;">🤫 Silent Mode SOS</h3>
+                  <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Send alert without sound/vibration</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="stealthToggle">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <p style="margin-top: var(--spacing-md); font-size: 0.875rem;">Alert sent silently in background. No screen indication for dangerous situations.</p>
+            </div>
+
+            <!-- Voice Activation -->
+            <div class="card">
+              <div class="flex-between">
+                <div>
+                  <h3 style="margin: 0 0 var(--spacing-xs) 0;">🎤 Voice Activation</h3>
+                  <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Say code word to trigger alert</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="voiceToggle">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div style="margin-top: var(--spacing-md);">
+                <input type="text" id="voiceCode" class="form-control" placeholder="Enter code phrase" style="font-size: 0.875rem;">
+                <small style="color: var(--text-light); display: block; margin-top: var(--spacing-xs);">Default: "help empower"</small>
+              </div>
+            </div>
+
+            <!-- Fake Call -->
+            <div class="card">
+              <h3 style="margin: 0 0 var(--spacing-xs) 0;">📞 Fake Call</h3>
+              <p style="margin: 0 0 var(--spacing-md) 0; font-size: 0.875rem; color: var(--text-light);">Escape uncomfortable situations</p>
+              <div style="display: flex; gap: var(--spacing-sm);">
+                <input type="text" id="fakeCallerName" class="form-control" placeholder="Caller name" value="Mom" style="flex: 1; margin: 0;">
+                <button class="btn btn-primary" id="triggerFakeCall">Trigger Call</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Auto Check-in -->
+        <section class="mt-lg">
+          <h2>Auto Check-in Timer</h2>
+          <div class="card">
+            <div class="flex-between" style="margin-bottom: var(--spacing-md);">
+              <div>
+                <h3 style="margin: 0 0 var(--spacing-xs) 0;">⏰ Scheduled Check-ins</h3>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Auto-alert if you don't check in by set time</p>
+              </div>
+              <button class="btn btn-primary btn-sm" id="addCheckInBtn">Schedule New</button>
+            </div>
+            <div id="checkInsList"></div>
+          </div>
+        </section>
+
+        <!-- Safe Zones -->
+        <section class="mt-lg">
+          <h2>Safe Zone Geofencing</h2>
+          <div class="card">
+            <div class="flex-between" style="margin-bottom: var(--spacing-md);">
+              <div>
+                <h3 style="margin: 0 0 var(--spacing-xs) 0;">📍 Manage Safe Zones</h3>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Get notified when entering/leaving areas</p>
+              </div>
+              <button class="btn btn-primary btn-sm" id="addSafeZoneBtn">Add Zone</button>
+            </div>
+            <div id="safeZonesList"></div>
+          </div>
+        </section>
+
+        <!-- Emergency Services -->
+        <section class="mt-lg">
+          <h2>Emergency Services</h2>
+          <div class="grid grid-3">
+            <a href="tel:100" class="card" style="text-align: center; text-decoration: none; color: inherit;">
+              <div style="font-size: 3rem; margin-bottom: var(--spacing-sm);">🚔</div>
+              <h3 style="margin: 0;">Police</h3>
+              <div class="badge badge-danger" style="margin-top: var(--spacing-sm);">100</div>
+            </a>
+            <a href="tel:108" class="card" style="text-align: center; text-decoration: none; color: inherit;">
+              <div style="font-size: 3rem; margin-bottom: var(--spacing-sm);">🚑</div>
+              <h3 style="margin: 0;">Ambulance</h3>
+              <div class="badge badge-danger" style="margin-top: var(--spacing-sm);">108</div>
+            </a>
+            <a href="tel:1091" class="card" style="text-align: center; text-decoration: none; color: inherit;">
+              <div style="font-size: 3rem; margin-bottom: var(--spacing-sm);">👩</div>
+              <h3 style="margin: 0;">Women Helpline</h3>
+              <div class="badge badge-danger" style="margin-top: var(--spacing-sm);">1091</div>
+            </a>
+          </div>
+        </section>
+
+        <!-- Community Safety -->
+        <section class="mt-lg">
+          <h2>Community Safety</h2>
+          <div class="card">
+            <div class="flex-between" style="margin-bottom: var(--spacing-md);">
+              <div>
+                <h3 style="margin: 0 0 var(--spacing-xs) 0;">🗺️ Report Safety Issue</h3>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Help others by reporting unsafe areas</p>
+              </div>
+              <button class="btn btn-primary btn-sm" id="reportIssueBtn">Report</button>
+            </div>
+            <div style="display: flex; gap: var(--spacing-md);">
+              <button class="btn btn-ghost btn-sm" id="viewHeatmapBtn">View Heatmap</button>
+              <button class="btn btn-ghost btn-sm" id="viewReportsBtn">Nearby Reports</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Check-in Modal -->
+  <div id="checkInModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Schedule Check-in</h3>
+        <button class="modal-close" onclick="UI.closeModal('checkInModal')">×</button>
+      </div>
+      <form id="checkInForm">
+        <div class="form-group">
+          <label>Date & Time</label>
+          <input type="datetime-local" id="checkInTime" required>
+        </div>
+        <div class="form-group">
+          <label>Notes (Optional)</label>
+          <textarea id="checkInNotes" rows="3" placeholder="E.g., Going to XYZ market"></textarea>
+        </div>
+        <div id="checkInAlerts"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="UI.closeModal('checkInModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Safe Zone Modal -->
+  <div id="safeZoneModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add Safe Zone</h3>
+        <button class="modal-close" onclick="UI.closeModal('safeZoneModal')">×</button>
+      </div>
+      <form id="safeZoneForm">
+        <div class="form-group">
+          <label>Zone Name</label>
+          <input type="text" id="zoneName" required placeholder="E.g., Home, Office">
+        </div>
+        <div class="form-group">
+          <label>Radius (meters)</label>
+          <input type="number" id="zoneRadius" value="100" min="50" max="5000">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="notifyOnExit" checked> Notify when I leave this zone
+          </label>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="notifyOnEnter"> Notify when I enter this zone
+          </label>
+        </div>
+        <div id="zoneAlerts"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="UI.closeModal('safeZoneModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Zone</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script src="/features.js"></script>
+</body>
+</html>

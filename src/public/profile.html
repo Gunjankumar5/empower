@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Profile - EMPOWER SAFE">
+  <title>Profile - EMPOWER SAFE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <ul class="navbar-menu">
+        <li><a href="/dashboard.html">Home</a></li>
+        <li><a href="/contacts.html">Contacts</a></li>
+        <li><a href="/profile.html">Profile</a></li>
+        <li><a href="/history.html">History</a></li>
+        <li><button id="logoutBtn" class="btn btn-sm btn-danger">Logout</button></li>
+      </ul>
+      <button class="navbar-toggle">☰</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-content">
+      <div class="container-sm">
+        <h1 style="margin-top: var(--spacing-2xl);">Safety Settings</h1>
+        <p class="text-muted">Manage your account and safety preferences</p>
+
+        <!-- Personal Information -->
+        <div class="card mt-lg">
+          <div class="card-header">
+            <h3 style="margin: 0;">Personal Information</h3>
+          </div>
+
+          <form id="profileForm" style="display: grid; gap: var(--spacing-lg);">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" disabled placeholder="Loading...">
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" disabled placeholder="Loading...">
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" placeholder="Update phone number">
+            </div>
+
+            <div class="form-group">
+              <label for="emergencyMessage">Emergency Message</label>
+              <textarea id="emergencyMessage" placeholder="Message sent with SOS alerts (optional)" rows="4"></textarea>
+              <small style="color: var(--text-light); display: block; margin-top: var(--spacing-xs);">
+                This message will be included in emergency notifications.
+              </small>
+            </div>
+
+            <div id="alerts"></div>
+
+            <button type="submit" class="btn btn-primary">
+              <span id="saveText">Save Changes</span>
+              <span id="saveLoader" class="hidden" style="margin-left: var(--spacing-sm);">
+                <span class="spinner"></span>
+              </span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Safety Preferences -->
+        <div class="card mt-lg">
+          <div class="card-header">
+            <h3 style="margin: 0;">Safety Preferences</h3>
+          </div>
+
+          <div style="display: grid; gap: var(--spacing-lg);">
+            <div class="flex-between">
+              <div>
+                <h4 style="margin: 0 0 var(--spacing-xs) 0;">📍 Auto Location Sharing</h4>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Share location automatically when SOS is triggered</p>
+              </div>
+              <label style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                <input type="checkbox" id="autoLocation" checked>
+              </label>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 0;">
+
+            <div class="flex-between">
+              <div>
+                <h4 style="margin: 0 0 var(--spacing-xs) 0;">🔔 Push Notifications</h4>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Receive notifications from emergency contacts</p>
+              </div>
+              <label style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                <input type="checkbox" id="pushNotifications" checked>
+              </label>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 0;">
+
+            <div class="flex-between">
+              <div>
+                <h4 style="margin: 0 0 var(--spacing-xs) 0;">📱 NFC Device Registration</h4>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);" id="nfcStatus">Not configured</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="registerNfcBtn">Register Device</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Device Status -->
+        <div class="card mt-lg">
+          <div class="card-header">
+            <h3 style="margin: 0;">Device Status</h3>
+          </div>
+
+          <div style="display: grid; gap: var(--spacing-md);">
+            <div class="flex-between">
+              <div>
+                <h4 style="margin: 0 0 var(--spacing-xs) 0;">Geolocation</h4>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Required for location sharing</p>
+              </div>
+              <span id="geoStatus" class="badge badge-success">Available</span>
+            </div>
+
+            <div class="flex-between">
+              <div>
+                <h4 style="margin: 0 0 var(--spacing-xs) 0;">Notifications</h4>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">For emergency alerts</p>
+              </div>
+              <span id="notifStatus" class="badge badge-warning">Check Browser Settings</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card mt-lg" style="border-color: var(--danger); border-left: 4px solid var(--danger);">
+          <h3 style="color: var(--danger);">⚠️ Danger Zone</h3>
+
+          <div style="display: grid; gap: var(--spacing-md);">
+            <div>
+              <h4 style="margin: 0 0 var(--spacing-sm) 0;">Change Password</h4>
+              <p style="margin: 0 0 var(--spacing-md) 0; color: var(--text-light); font-size: 0.875rem;">Update your account password</p>
+              <button type="button" class="btn btn-secondary btn-sm">Change Password</button>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--danger); opacity: 0.3; margin: 0;">
+
+            <div>
+              <h4 style="margin: 0 0 var(--spacing-sm) 0; color: var(--danger);">Delete Account</h4>
+              <p style="margin: 0 0 var(--spacing-md) 0; color: var(--text-light); font-size: 0.875rem;">Permanently delete your account and all data</p>
+              <button type="button" class="btn btn-danger btn-sm" onclick="deleteAccount()">Delete Account</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="alertsContainer"></div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <p>&copy; 2026 EMPOWER SAFE. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      Auth.redirectToLogin();
+
+      const profileForm = DOM.get('#profileForm');
+      const nameInput = DOM.get('#name');
+      const emailInput = DOM.get('#email');
+      const phoneInput = DOM.get('#phone');
+      const emergencyMessageInput = DOM.get('#emergencyMessage');
+      const alerts = DOM.get('#alerts');
+      const alertsContainer = DOM.get('#alertsContainer');
+      const logoutBtn = DOM.get('#logoutBtn');
+      const registerNfcBtn = DOM.get('#registerNfcBtn');
+
+      // Load user profile
+      const loadProfile = async () => {
+        try {
+          const profile = await api.getUserProfile();
+          DOM.get('#name').value = profile.name || '';
+          DOM.get('#email').value = profile.email || '';
+          DOM.get('#phone').value = profile.phone || '';
+          DOM.get('#emergencyMessage').value = profile.emergencyMessage || '';
+        } catch (error) {
+          UI.showError('Failed to load profile', alertsContainer);
+        }
+      };
+
+      // Form submission
+      DOM.on(profileForm, 'submit', async (e) => {
+        e.preventDefault();
+
+        try {
+          const submitBtn = profileForm.querySelector('button[type="submit"]');
+          DOM.setAttr(submitBtn, 'disabled', '');
+          DOM.hide(DOM.get('#saveText'));
+          DOM.show(DOM.get('#saveLoader'));
+
+          await api.updateProfile({
+            phone: phoneInput.value,
+            emergencyMessage: emergencyMessageInput.value,
+          });
+
+          UI.showSuccess('Profile updated successfully!', alertsContainer);
+        } catch (error) {
+          UI.showError(error.message || 'Failed to update profile', alertsContainer);
+        } finally {
+          const submitBtn = profileForm.querySelector('button[type="submit"]');
+          DOM.removeAttr(submitBtn, 'disabled');
+          DOM.show(DOM.get('#saveText'));
+          DOM.hide(DOM.get('#saveLoader'));
+        }
+      });
+
+      // NFC Registration
+      DOM.on(registerNfcBtn, 'click', async () => {
+        try {
+          const deviceId = prompt('Enter your NFC device ID:');
+          if (!deviceId) return;
+
+          await api.registerNFC(deviceId);
+          DOM.get('#nfcStatus').textContent = 'Device registered: ' + deviceId;
+          UI.showSuccess('NFC device registered!', alertsContainer);
+        } catch (error) {
+          UI.showError(error.message || 'Failed to register NFC device', alertsContainer);
+        }
+      });
+
+      // Logout
+      DOM.on(logoutBtn, 'click', () => {
+        if (UI.showConfirm('Are you sure you want to logout?')) {
+          Auth.logout();
+        }
+      });
+
+      // Delete account
+      window.deleteAccount = () => {
+        if (!UI.showConfirm('Are you absolutely sure? This cannot be undone.')) return;
+        if (!UI.showConfirm('Your account and all data will be deleted. Continue?')) return;
+
+        // API call would go here
+        // await api.deleteAccount();
+        UI.showInfo('Account deletion feature coming soon', alertsContainer);
+      };
+
+      loadProfile();
+    });
+  </script>
+</body>
+</html>
