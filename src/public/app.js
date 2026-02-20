@@ -4,8 +4,11 @@
  */
 
 class API {
-  constructor(baseURL = 'http://localhost:5000') {
-    this.baseURL = baseURL;
+  constructor(baseURL) {
+    // Prefer same-origin API calls; fallback for file:// or unset origin.
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const defaultBaseURL = origin && origin !== 'null' ? origin : 'http://localhost:5000';
+    this.baseURL = baseURL || defaultBaseURL;
     this.token = this.getToken();
   }
 

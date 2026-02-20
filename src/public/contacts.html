@@ -116,7 +116,7 @@
       const loadContacts = async () => {
         try {
           const profile = await api.getUserProfile();
-          renderContacts(profile.contacts || []);
+          renderContacts(profile.user.emergencyContacts || []);
         } catch (error) {
           UI.showError('Failed to load contacts', alerts);
         }
@@ -148,8 +148,8 @@
                 <small style="color: var(--text-light);">${contact.relation} · ${contact.phone}</small>
               </div>
               <div class="list-item-actions">
-                <button type="button" class="btn btn-ghost btn-sm" onclick="editContact('${contact._id}')">Edit</button>
-                <button type="button" class="btn btn-danger btn-sm" onclick="deleteContact('${contact._id}')">Delete</button>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="editContact('${contact.id}')">Edit</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="deleteContact('${contact.id}')">Delete</button>
               </div>
             </div>
           `;

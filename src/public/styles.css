@@ -53,6 +53,7 @@ html {
   scroll-behavior: smooth;
 }
 
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
@@ -719,6 +720,7 @@ a:hover {
     width: 100%;
   }
 
+
   .modal-content {
     width: 95%;
   }
@@ -738,6 +740,7 @@ a:hover {
   h1 { font-size: 1.5rem; }
   h2 { font-size: 1.25rem; }
 
+
   .sos-button {
     width: 120px;
     height: 120px;
@@ -747,6 +750,7 @@ a:hover {
   .card {
     padding: var(--spacing-md);
   }
+
 
   .btn {
     padding: var(--spacing-sm) var(--spacing-md);
