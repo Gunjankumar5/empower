@@ -11,7 +11,7 @@ RUN npm ci --only=production
 # Copy application code
 COPY . .
 
-# Expose port (will be overridden by DigitalOcean)
+# Expose port
 EXPOSE 5000
 
 # Health check
