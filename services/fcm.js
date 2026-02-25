@@ -2,7 +2,12 @@ const fetch = require("node-fetch");
 
 async function sendPush(message) {
   try {
-    await fetch("https://fcm.googleapis.com/fcm/send", {
+    if (!process.env.FCM_SERVER_KEY) {
+      console.warn("⚠️ FCM_SERVER_KEY not configured in environment variables");
+      return;
+    }
+
+    const response = await fetch("https://fcm.googleapis.com/fcm/send", {
       method: "POST",
       headers: {
         "Authorization": `key=${process.env.FCM_SERVER_KEY}`,
@@ -12,13 +17,24 @@ async function sendPush(message) {
         notification: {
           title: "🚨 Emergency Alert!",
           body: message,
+          sound: "default",
+          priority: "high",
         },
         to: "/topics/all",
+        priority: "high",
       }),
     });
-    console.log("📲 Push notification sent");
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`FCM API error: ${response.status} - ${error}`);
+    }
+
+    console.log("✅ Push notification sent successfully");
+    return response;
   } catch (err) {
-    console.error("❌ Push error:", err.message);
+    console.error("❌ Push notification error:", err.message);
+    throw err;
   }
 }
 

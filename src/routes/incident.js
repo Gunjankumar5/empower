@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Incident = require('../../models/incident');
 const jwt = require('jsonwebtoken');
+const sendNotification = require('../../services/notifications');
 
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
@@ -44,6 +45,15 @@ router.post('/create', verifyToken, async (req, res) => {
     await User.findByIdAndUpdate(req.userId, {
       $inc: { totalAlerts: 1, safetyScore: -5 },
     });
+
+    // Send notifications to emergency contacts
+    try {
+      const locationStr = location?.address || `${location?.lat}, ${location?.lng}` || 'Unknown location';
+      await sendNotification(req.userId, locationStr);
+    } catch (notifError) {
+      console.error('Notification sending failed:', notifError);
+      // Don't fail the incident creation if notifications fail
+    }
 
     // Emit realtime event via Socket.io
     const io = req.app.get('io');
