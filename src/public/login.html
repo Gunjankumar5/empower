@@ -18,9 +18,12 @@
   <div class="page">
     <div class="page-content">
       <div class="container-sm">
-        <div style="text-align: center; margin-bottom: var(--spacing-2xl);">
+        <div style="text-align: center; margin-bottom: var(--spacing-2xl); margin-top: var(--spacing-2xl);">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1)); border-radius: 16px; margin: 0 auto var(--spacing-lg);">
+            <span style="font-size: 2.5rem;">🛡️</span>
+          </div>
           <h1>Welcome Back</h1>
-          <p>Sign in to your EMPOWER SAFE account</p>
+          <p style="font-size: 1.05rem;">Sign in to your EMPOWER SAFE account</p>
         </div>
 
         <div class="card">
@@ -33,7 +36,7 @@
             <div class="form-group">
               <label for="password">Password</label>
               <input type="password" id="password" name="password" required placeholder="••••••••">
-              <a href="#" style="font-size: 0.875rem; margin-top: var(--spacing-xs); display: inline-block;">Forgot password?</a>
+              <a href="#" style="font-size: 0.875rem; margin-top: var(--spacing-xs); display: inline-block; text-decoration: underline;">Forgot password?</a>
             </div>
 
             <div id="alerts"></div>
@@ -47,13 +50,16 @@
           </form>
 
           <div style="text-align: center; margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--border);">
-            <p>Don't have an account? <a href="/register.html"><strong>Create one</strong></a></p>
+            <p>Don't have an account? <a href="/register.html" style="font-weight: 600;">Create one</a></p>
           </div>
         </div>
 
-        <div class="card mt-lg" style="background: rgba(16, 185, 129, 0.05); border-color: var(--success);">
-          <h4 style="color: var(--success);">🔒 Security First</h4>
-          <p style="margin: 0;">Your password is encrypted and never stored in plain text. We follow industry-standard security practices.</p>
+        <div class="alert alert-success" style="margin-top: var(--spacing-lg);">
+          <span style="font-size: 1.25rem;">🔒</span>
+          <div>
+            <strong>Security First</strong>
+            <p style="margin: 0; margin-top: var(--spacing-xs);">Your password is encrypted and never stored in plain text. We follow industry-standard security practices.</p>
+          </div>
         </div>
       </div>
     </div>

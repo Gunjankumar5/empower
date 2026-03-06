@@ -26,8 +26,13 @@
   <div class="page">
     <div class="page-content">
       <div class="container-sm">
-        <h1 style="margin-top: var(--spacing-2xl);">Safety Settings</h1>
-        <p class="text-muted">Manage your account and safety preferences</p>
+        <div style="margin-top: var(--spacing-2xl); margin-bottom: var(--spacing-2xl);">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1)); border-radius: 12px; margin-bottom: var(--spacing-lg);">
+            <span style="font-size: 1.75rem;">⚙️</span>
+          </div>
+          <h1 style="margin-bottom: var(--spacing-sm);">Safety Settings</h1>
+          <p class="text-muted">Manage your account and safety preferences</p>
+        </div>
 
         <!-- Personal Information -->
         <div class="card mt-lg">
@@ -137,13 +142,13 @@
         </div>
 
         <!-- Danger Zone -->
-        <div class="card mt-lg" style="border-color: var(--danger); border-left: 4px solid var(--danger);">
-          <h3 style="color: var(--danger);">⚠️ Danger Zone</h3>
+        <div class="card mt-lg" style="border-color: var(--danger); border-left: 4px solid var(--danger); background: linear-gradient(135deg, rgba(239, 68, 68, 0.02), rgba(239, 68, 68, 0.01));">
+          <h3 style="color: var(--danger); display: flex; align-items: center; gap: var(--spacing-sm);">⚠️ Danger Zone</h3>
 
           <div style="display: grid; gap: var(--spacing-md);">
             <div>
               <h4 style="margin: 0 0 var(--spacing-sm) 0;">Change Password</h4>
-              <p style="margin: 0 0 var(--spacing-md) 0; color: var(--text-light); font-size: 0.875rem;">Update your account password</p>
+              <p style="margin: 0 0 var(--spacing-md) 0; color: var(--text-light); font-size: 0.875rem;">Update your account password to keep your account secure</p>
               <button type="button" class="btn btn-secondary btn-sm">Change Password</button>
             </div>
 
@@ -151,7 +156,7 @@
 
             <div>
               <h4 style="margin: 0 0 var(--spacing-sm) 0; color: var(--danger);">Delete Account</h4>
-              <p style="margin: 0 0 var(--spacing-md) 0; color: var(--text-light); font-size: 0.875rem;">Permanently delete your account and all data</p>
+              <p style="margin: 0 0 var(--spacing-md) 0; color: var(--text-light); font-size: 0.875rem;">Permanently delete your account and all associated data. This action cannot be undone.</p>
               <button type="button" class="btn btn-danger btn-sm" onclick="deleteAccount()">Delete Account</button>
             </div>
           </div>

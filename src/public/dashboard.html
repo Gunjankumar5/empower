@@ -28,36 +28,36 @@
     <div class="page-content">
       <div class="container">
         <!-- Welcome Section -->
-        <div class="card" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; margin-top: var(--spacing-2xl); margin-bottom: var(--spacing-2xl);">
-          <h2 id="welcomeName" style="color: white; margin: 0 0 var(--spacing-sm) 0;">Welcome back!</h2>
-          <p id="welcomeTime" style="color: rgba(255, 255, 255, 0.9); margin: 0;">It's a safe day. Stay vigilant!</p>
+        <div class="card" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; margin-top: var(--spacing-2xl); margin-bottom: var(--spacing-2xl); border: none; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);">
+          <h2 id="welcomeName" style="color: white; margin: 0 0 var(--spacing-sm) 0; font-size: 2rem;">Welcome back! 👋</h2>
+          <p id="welcomeTime" style="color: rgba(255, 255, 255, 0.9); margin: 0; font-size: 1.1rem;">It's a safe day. Stay vigilant!</p>
         </div>
 
         <!-- Quick Actions -->
         <section>
           <h3 style="margin-bottom: var(--spacing-lg);">Quick Actions</h3>
           <div class="grid grid-3">
-            <a href="/contacts.html" class="card" style="text-align: center; text-decoration: none; color: inherit; display: grid; gap: var(--spacing-md); align-items: center;">
-              <div style="font-size: 2.5rem;">👥</div>
+            <a href="/contacts.html" class="card" style="text-align: center; text-decoration: none; color: inherit; display: grid; gap: var(--spacing-md); align-items: center; background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(99, 102, 241, 0.02)); border-color: rgba(99, 102, 241, 0.2);">
+              <div style="font-size: 3rem; display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: rgba(99, 102, 241, 0.1); border-radius: 12px; margin: 0 auto;">👥</div>
               <div>
                 <h4 style="margin: 0;">Emergency Contacts</h4>
-                <p style="margin: 0; font-size: 0.875rem;" id="contactCount">Loading...</p>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);" id="contactCount">Loading...</p>
               </div>
             </a>
 
-            <a href="/profile.html" class="card" style="text-align: center; text-decoration: none; color: inherit; display: grid; gap: var(--spacing-md); align-items: center;">
-              <div style="font-size: 2.5rem;">⚙️</div>
+            <a href="/profile.html" class="card" style="text-align: center; text-decoration: none; color: inherit; display: grid; gap: var(--spacing-md); align-items: center; background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(99, 102, 241, 0.02)); border-color: rgba(99, 102, 241, 0.2);">
+              <div style="font-size: 3rem; display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: rgba(99, 102, 241, 0.1); border-radius: 12px; margin: 0 auto;">⚙️</div>
               <div>
                 <h4 style="margin: 0;">Safety Settings</h4>
-                <p style="margin: 0; font-size: 0.875rem;">Manage preferences</p>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Manage preferences</p>
               </div>
             </a>
 
-            <a href="/history.html" class="card" style="text-align: center; text-decoration: none; color: inherit; display: grid; gap: var(--spacing-md); align-items: center;">
-              <div style="font-size: 2.5rem;">📋</div>
+            <a href="/history.html" class="card" style="text-align: center; text-decoration: none; color: inherit; display: grid; gap: var(--spacing-md); align-items: center; background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(99, 102, 241, 0.02)); border-color: rgba(99, 102, 241, 0.2);">
+              <div style="font-size: 3rem; display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: rgba(99, 102, 241, 0.1); border-radius: 12px; margin: 0 auto;">📋</div>
               <div>
                 <h4 style="margin: 0;">Incident History</h4>
-                <p style="margin: 0; font-size: 0.875rem;" id="incidentCount">Loading...</p>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);" id="incidentCount">Loading...</p>
               </div>
             </a>
           </div>
@@ -65,14 +65,14 @@
 
         <!-- SOS Section -->
         <section class="mt-lg">
-          <div style="text-align: center;">
-            <p style="margin-bottom: var(--spacing-md); color: var(--text-light);">In an emergency, tap the button below</p>
+          <div style="text-align: center; background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.02)); padding: 48px 24px; border-radius: 16px; border: 2px dashed rgba(239, 68, 68, 0.2);">
+            <p style="margin-bottom: var(--spacing-md); color: var(--text-light); font-weight: 600;">🚨 In an emergency, tap the button below</p>
             <button id="sosBtn" class="sos-button" aria-label="Trigger SOS Emergency Alert">
               <span>SOS</span>
               <small style="font-size: 0.6em; opacity: 0.8;">TAP</small>
             </button>
             <p style="margin-top: var(--spacing-lg); color: var(--text-light); font-size: 0.875rem;">
-              ⚠️ This will alert all your emergency contacts with your location
+              This will alert all your emergency contacts with your location
             </p>
           </div>
 
@@ -80,14 +80,14 @@
           <div id="sosModal" class="modal">
             <div class="modal-content">
               <div class="modal-header">
-                <h4 style="color: var(--danger);">⚠️ Confirm SOS Alert</h4>
+                <h4 style="color: var(--danger); margin: 0;">⚠️ Confirm SOS Alert</h4>
               </div>
               <p>You're about to send an emergency alert to all your contacts. Your location will be shared with them.</p>
               
               <div id="sosAlerts"></div>
 
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="UI.closeModal('sosModal')">Cancel</button>
+                <button type="button" class="btn btn-secondary">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmSosBtn">Send SOS Alert</button>
               </div>
             </div>
