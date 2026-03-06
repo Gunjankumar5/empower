@@ -1,11 +1,19 @@
 const twilio = require("twilio");
 
-const client = new twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
+let client = null;
+
+// Initialize Twilio client only if credentials are available
+if (process.env.TWILIO_SID && process.env.TWILIO_AUTH_TOKEN) {
+  client = new twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
+  console.log("✅ Twilio client initialized");
+} else {
+  console.warn("⚠️ Twilio credentials not configured - SMS functionality disabled");
+}
 
 async function sendSMS(to, message) {
   try {
-    if (!process.env.TWILIO_SID || !process.env.TWILIO_AUTH_TOKEN) {
-      console.warn("⚠️ Twilio credentials not configured in environment variables");
+    if (!client) {
+      console.warn("⚠️ Twilio client not available - SMS not sent");
       return;
     }
 
