@@ -198,6 +198,12 @@
           DOM.get('#email').value = profile.email || '';
           DOM.get('#phone').value = profile.phone || '';
           DOM.get('#emergencyMessage').value = profile.emergencyMessage || '';
+          const nfcStatus = DOM.get('#nfcStatus');
+          if (Array.isArray(profile.nfcDevices) && profile.nfcDevices.length > 0) {
+            nfcStatus.textContent = `Device registered: ${profile.nfcDevices[0]}`;
+          } else {
+            nfcStatus.textContent = 'Not configured';
+          }
         } catch (error) {
           UI.showError('Failed to load profile', alertsContainer);
         }
@@ -232,7 +238,7 @@
       // NFC Registration
       DOM.on(registerNfcBtn, 'click', async () => {
         try {
-          const deviceId = prompt('Enter your NFC device ID:');
+          const deviceId = prompt('Enter your NFC device ID:')?.trim();
           if (!deviceId) return;
 
           await api.registerNFC(deviceId);
