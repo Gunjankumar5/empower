@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="View your safety alerts and locations on a map">
+  <title>Safety Map - EMPOWER SAFE</title>
+  <link rel="stylesheet" href="/styles.css">
+  <!-- Leaflet.js (OpenStreetMap) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <style>
+    #map {
+      width: 100%;
+      height: 500px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-top: var(--spacing-md);
+    }
+
+    .map-controls {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-lg);
+      flex-wrap: wrap;
+    }
+
+    .map-controls .btn {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .map-legend {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: var(--spacing-md);
+      margin-top: var(--spacing-lg);
+      display: grid;
+      gap: var(--spacing-md);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+    }
+
+    .legend-marker {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .legend-marker.current {
+      background: var(--primary);
+      color: white;
+    }
+
+    .legend-marker.danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .legend-marker.warning {
+      background: var(--warning);
+      color: white;
+    }
+
+    .legend-marker.success {
+      background: var(--success);
+      color: white;
+    }
+
+    .map-info {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(99, 102, 241, 0.02));
+      border-left: 4px solid var(--primary);
+      padding: var(--spacing-lg);
+      border-radius: 8px;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .alert-list {
+      display: grid;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-lg);
+    }
+
+    .alert-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: var(--spacing-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .alert-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .alert-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .alert-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .alert-badge.critical {
+      background: var(--danger);
+      color: white;
+    }
+
+    .alert-badge.urgent {
+      background: var(--warning);
+      color: white;
+    }
+
+    .alert-badge.warning {
+      background: var(--warning);
+      color: white;
+    }
+
+    .alert-card-content {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .alert-card-location {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      color: var(--primary);
+      font-size: 0.875rem;
+    }
+
+    .alert-card-time {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      color: var(--text-light);
+      font-size: 0.8rem;
+      margin-top: var(--spacing-sm);
+    }
+
+    .map-modal {
+      max-width: 800px !important;
+    }
+
+    @media (max-width: 768px) {
+      #map {
+        height: 400px;
+      }
+
+      .map-controls {
+        flex-direction: column;
+      }
+
+      .map-controls .btn {
+        width: 100%;
+        min-width: unset;
+      }
+
+      .alert-card-header {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body data-page="map">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/dashboard.html" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <button class="navbar-toggle">☰</button>
+      <div class="navbar-menu">
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/contacts.html">Contacts</a>
+        <a href="/profile.html">Profile</a>
+        <a href="/map.html" class="active">Map</a>
+        <a href="/features.html">Features</a>
+        <button id="logoutBtn" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem;">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page">
+    <section class="page-content">
+      <div class="container">
+        <!-- Header -->
+        <div style="margin-bottom: var(--spacing-2xl);">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1)); border-radius: 12px; margin-bottom: var(--spacing-lg);">
+            <span style="font-size: 1.75rem;">🗺️</span>
+          </div>
+          <h1 style="margin-bottom: var(--spacing-sm);">Safety Map</h1>
+          <p class="text-muted">View your location and emergency alerts on an interactive map</p>
+        </div>
+
+        <!-- Info Box -->
+        <div class="map-info">
+          <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+            <span style="font-size: 1.5rem;">ℹ️</span>
+            <div>
+              <strong>Real-Time Location Tracking</strong>
+              <p style="margin: var(--spacing-sm) 0 0 0; color: var(--text-light); font-size: 0.9rem;">
+                Green marker shows your current location. Red markers show your emergency alerts. Click any location to see details.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map -->
+        <div id="map"></div>
+
+        <!-- Map Controls -->
+        <div class="map-controls">
+          <button id="centerMapBtn" class="btn btn-primary" style="flex: 1;">
+            📍 Center on My Location
+          </button>
+          <button id="showCurrentBtn" class="btn btn-secondary" style="flex: 1;">
+            👁️ Show Current Position
+          </button>
+          <button id="zoomInBtn" class="btn btn-ghost" style="flex: 1;">
+            🔍 Zoom In
+          </button>
+          <button id="zoomOutBtn" class="btn btn-ghost" style="flex: 1;">
+            🔍 Zoom Out
+          </button>
+        </div>
+
+        <!-- Legend -->
+        <div class="map-legend">
+          <h3 style="margin-top: 0;">Map Legend</h3>
+          <div class="legend-item">
+            <div class="legend-marker current">📍</div>
+            <div>
+              <strong>Your Current Location</strong>
+              <p style="margin: 0; font-size: 0.85rem; color: var(--text-light);">Green marker shows where you are right now</p>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-marker danger">🚨</div>
+            <div>
+              <strong>Critical SOS Alert</strong>
+              <p style="margin: 0; font-size: 0.85rem; color: var(--text-light);">Red marker indicates a critical emergency alert</p>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-marker warning">⚠️</div>
+            <div>
+              <strong>Warning Alert</strong>
+              <p style="margin: 0; font-size: 0.85rem; color: var(--text-light);">Orange marker indicates a warning alert</p>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-marker success">✓</div>
+            <div>
+              <strong>Resolved Alert</strong>
+              <p style="margin: 0; font-size: 0.85rem; color: var(--text-light);">Green marker shows resolved alerts</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alerts List -->
+        <div style="margin-top: var(--spacing-2xl);">
+          <h2>Your Emergency Alerts</h2>
+          <div id="alertsList" class="alert-list"></div>
+          <div id="alertsEmpty" style="text-align: center; padding: var(--spacing-xl); color: var(--text-light);">
+            <p style="margin: 0; font-size: 1.1rem;">No emergency alerts yet</p>
+            <p style="margin: var(--spacing-sm) 0 0 0; font-size: 0.9rem;">When you trigger an SOS alert, it will appear here</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Map Popup Modal -->
+  <div id="mapModal" class="modal">
+    <div class="modal-content map-modal">
+      <div class="modal-header">
+        <h3 id="mapModalTitle" style="margin: 0;">Alert Location</h3>
+        <button type="button" class="modal-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">×</button>
+      </div>
+      <div id="mapModalMap" style="width: 100%; height: 500px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: var(--spacing-lg);"></div>
+      <div id="mapModalContent" style="display: grid; gap: var(--spacing-md);"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" style="width: 100%;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div>
+        <h4>EMPOWER SAFE</h4>
+        <p>Your personal safety guardian</p>
+      </div>
+      <div>
+        <h4>Features</h4>
+        <p>SOS Alerts • Location Sharing • Emergency Contacts • Safety Reports</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p>support@empowersafe.com • +1 (555) 123-4567</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="/app.js"></script>
+  <script src="/advanced-location.js"></script>
+  <script src="/pages.js"></script>
+  <script>
+    let mapInstance = null;
+    let currentLocationMarker = null;
+    let alertMarkers = [];
+
+    async function initMapPage() {
+      if (getToken()) {
+        const alertsList = document.getElementById('alertsList');
+        const alertsEmpty = document.getElementById('alertsEmpty');
+        const centerMapBtn = document.getElementById('centerMapBtn');
+        const showCurrentBtn = document.getElementById('showCurrentBtn');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+
+        // Initialize Leaflet map centered on world
+        mapInstance = L.map('map').setView([20, 0], 2);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 19
+        }).addTo(mapInstance);
+
+        // Load current location
+        const loadCurrentLocation = async () => {
+          try {
+            const location = await Location.getCurrentLocation();
+            if (currentLocationMarker) mapInstance.removeLayer(currentLocationMarker);
+            
+            currentLocationMarker = L.circleMarker([location.lat, location.lng], {
+              radius: 12,
+              fillColor: '#6366f1',
+              color: 'white',
+              weight: 3,
+              opacity: 1,
+              fillOpacity: 0.8
+            }).addTo(mapInstance)
+              .bindPopup(`<strong>Your Current Location</strong><br>Lat: ${location.lat.toFixed(6)}<br>Lng: ${location.lng.toFixed(6)}`)
+              .openPopup();
+
+            mapInstance.setView([location.lat, location.lng], 14);
+            showToast('📍 Location updated', 'success');
+          } catch (error) {
+            console.warn('Location access denied:', error);
+            showToast('Enable location services to view your position', 'warning');
+          }
+        };
+
+        // Load alerts
+        const loadAlerts = async () => {
+          try {
+            const response = await apiCall('/alerts', 'GET');
+            const alerts = response.alerts || [];
+
+            // Clear existing markers
+            alertMarkers.forEach(marker => mapInstance.removeLayer(marker));
+            alertMarkers = [];
+
+            if (alerts.length === 0) {
+              alertsList.style.display = 'none';
+              alertsEmpty.style.display = 'block';
+              return;
+            }
+
+            alertsList.style.display = 'block';
+            alertsEmpty.style.display = 'none';
+            alertsList.innerHTML = '';
+
+            alerts.forEach((alert, index) => {
+              const location = alert.location || {};
+              const [markerColor, markerEmoji] = alert.status === 'resolved' 
+                ? ['#10b981', '✓']
+                : alert.alertLevel === 'critical'
+                  ? ['#ef4444', '🚨']
+                  : ['#f59e0b', '⚠️'];
+
+              // Add marker to map
+              if (location.lat && location.lng) {
+                const marker = L.circleMarker([location.lat, location.lng], {
+                  radius: 10,
+                  fillColor: markerColor,
+                  color: 'white',
+                  weight: 2,
+                  opacity: 1,
+                  fillOpacity: 0.8
+                }).addTo(mapInstance);
+
+                marker.bindPopup(`
+                  <strong>${alert.alertLevel.toUpperCase()}</strong><br>
+                  Status: ${alert.status}<br>
+                  Location: ${location.address || `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}<br>
+                  Time: ${new Date(alert.createdAt).toLocaleString()}
+                `);
+
+                alertMarkers.push(marker);
+
+                marker.on('click', () => openMapModal(alert));
+              }
+
+              // Add to list
+              const alertCard = document.createElement('div');
+              alertCard.className = 'alert-card';
+              alertCard.innerHTML = `
+                <div class="alert-card-header">
+                  <span style="font-size: 1.2rem;">${markerEmoji}</span>
+                  <div style="flex: 1;">
+                    <span class="alert-badge ${alert.alertLevel}">${alert.alertLevel.toUpperCase()}</span>
+                  </div>
+                  <span style="color: var(--text-light); font-size: 0.85rem;">${alert.status}</span>
+                </div>
+                <div class="alert-card-content">
+                  ${alert.description || 'Emergency SOS Alert'}
+                </div>
+                ${location.address ? `
+                  <div class="alert-card-location">
+                    📍 ${location.address}
+                  </div>
+                ` : ''}
+                <div class="alert-card-time">
+                  🕐 ${new Date(alert.createdAt).toLocaleDateString()} ${new Date(alert.createdAt).toLocaleTimeString()}
+                </div>
+              `;
+
+              alertCard.addEventListener('click', () => openMapModal(alert));
+              alertsList.appendChild(alertCard);
+            });
+          } catch (error) {
+            console.error('Failed to load alerts:', error);
+            showToast('Failed to load alerts', 'error');
+          }
+        };
+
+        // Open detailed map modal
+        const openMapModal = (alert) => {
+          const location = alert.location || {};
+          const modal = document.getElementById('mapModal');
+          const title = document.getElementById('mapModalTitle');
+          const mapDiv = document.getElementById('mapModalMap');
+          const content = document.getElementById('mapModalContent');
+
+          title.textContent = `${alert.alertLevel.toUpperCase()} Alert Details`;
+
+          // Create modal map
+          const modalMap = L.map(mapDiv).setView(
+            [location.lat || 20, location.lng || 0], 
+            13
+          );
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+          }).addTo(modalMap);
+
+          if (location.lat && location.lng) {
+            L.circleMarker([location.lat, location.lng], {
+              radius: 12,
+              fillColor: '#ef4444',
+              color: 'white',
+              weight: 2,
+              opacity: 1,
+              fillOpacity: 0.8
+            }).addTo(modalMap)
+              .bindPopup(`<strong>${alert.alertLevel.toUpperCase()}</strong><br>${location.address || 'Location'}`)
+              .openPopup();
+          }
+
+          content.innerHTML = `
+            <div style="display: grid; gap: var(--spacing-md);">
+              <div style="display: grid; gap: var(--spacing-sm); font-size: 0.9rem;">
+                <div>
+                  <strong>Alert Type:</strong>
+                  <span style="color: var(--text-light); margin-left: var(--spacing-sm);">${alert.description || 'Emergency SOS'}</span>
+                </div>
+                <div>
+                  <strong>Level:</strong>
+                  <span class="alert-badge ${alert.alertLevel}" style="margin-left: var(--spacing-sm);">${alert.alertLevel.toUpperCase()}</span>
+                </div>
+                <div>
+                  <strong>Status:</strong>
+                  <span style="color: var(--text-light); margin-left: var(--spacing-sm);">${alert.status}</span>
+                </div>
+                ${location.address ? `
+                  <div>
+                    <strong>Location:</strong>
+                    <span style="color: var(--text-light); margin-left: var(--spacing-sm);">${location.address}</span>
+                  </div>
+                ` : ''}
+                ${location.lat && location.lng ? `
+                  <div>
+                    <strong>Coordinates:</strong>
+                    <span style="color: var(--text-light); margin-left: var(--spacing-sm);">
+                      ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}
+                    </span>
+                  </div>
+                ` : ''}
+                <div>
+                  <strong>Date & Time:</strong>
+                  <span style="color: var(--text-light); margin-left: var(--spacing-sm);">
+                    ${new Date(alert.createdAt).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          `;
+
+          UI.openModal('mapModal');
+
+          // Cleanup when modal closes
+          setTimeout(() => modalMap.remove?.(), 0);
+        };
+
+        // Button handlers
+        centerMapBtn.addEventListener('click', loadCurrentLocation);
+        showCurrentBtn.addEventListener('click', loadCurrentLocation);
+        zoomInBtn.addEventListener('click', () => mapInstance.zoomIn());
+        zoomOutBtn.addEventListener('click', () => mapInstance.zoomOut());
+
+        // Close modal cleanup
+        document.querySelector('#mapModal .modal-close').addEventListener('click', () => {
+          UI.closeModal('mapModal');
+        });
+
+        document.querySelector('#mapModal .modal-footer .btn').addEventListener('click', () => {
+          UI.closeModal('mapModal');
+        });
+
+        // Initial load
+        loadCurrentLocation();
+        loadAlerts();
+
+        // Logout handler
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+          if (UI.showConfirm('Logout?')) Auth.logout();
+        });
+
+        // Navbar toggle
+        document.querySelector('.navbar-toggle').addEventListener('click', () => {
+          const menu = document.querySelector('.navbar-menu');
+          menu.classList.toggle('active');
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initMapPage);
+  </script>
+</body>
+</html>

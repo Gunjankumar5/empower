@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NFC Features - EMPOWER SAFE">
+  <title>Features - EMPOWER SAFE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="features">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <ul class="navbar-menu">
+        <li><a href="/dashboard.html">Dashboard</a></li>
+        <li><a href="/contacts.html">Contacts</a></li>
+        <li><a href="/profile.html">Profile</a></li>
+        <li><a href="/map.html">Map</a></li>
+        <li><a href="/features.html">Features</a></li>
+        <li><a href="/history.html">History</a></li>
+        <li><button id="logoutBtn" class="btn btn-sm btn-danger">Logout</button></li>
+      </ul>
+      <button class="navbar-toggle">☰</button>
+    </div>
+  </nav>
+
+  <main class="page">
+    <section class="page-content">
+      <div class="container" style="padding-top: 32px; padding-bottom: 32px;">
+        <div class="grid grid-2" style="align-items: start;">
+          <div class="card">
+            <h1 style="margin-bottom: 8px;">Register Your NFC Tag</h1>
+            <p style="margin-bottom: 20px;">Scan an NFC tag on a supported Android Chrome device and link it to your profile.</p>
+            <div class="card" style="margin-bottom: 16px;">
+              <strong>Current Tag ID</strong>
+              <div id="currentTagId" style="margin-top: 8px; color: var(--text-light);">Loading...</div>
+            </div>
+            <button id="scanNfcBtn" class="btn btn-primary btn-lg">Scan NFC Tag</button>
+            <div id="nfcStatus" style="margin-top: 16px;"></div>
+
+            <div class="card" style="margin-top: 20px;">
+              <h3 style="margin-bottom: 8px;">Manual Tag Registration</h3>
+              <p style="margin-bottom: 16px;">If your browser does not support Web NFC, paste the tag ID here and save it to your profile.</p>
+              <div style="display: grid; gap: 12px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="manualTagId">Tag ID</label>
+                  <input id="manualTagId" type="text" placeholder="Enter tag ID" autocomplete="off">
+                </div>
+                <button id="registerTagBtn" class="btn btn-secondary">Save Tag ID</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 style="margin-bottom: 8px;">How it works</h2>
+            <p>Your tag is tied to your profile. If someone scans it, the app can trigger a safety alert using your last known location.</p>
+            <div id="nfcFallback" class="alert alert-info hidden">
+              Web NFC is not supported in this browser. Use Android Chrome with NFC enabled to scan a tag.
+            </div>
+            <ol style="padding-left: 20px; color: var(--text-light); display: grid; gap: 10px;">
+              <li>Tap <strong>Scan NFC Tag</strong>.</li>
+              <li>Bring the tag close to the device.</li>
+              <li>The tag ID is saved to your profile.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+  <script src="/advanced-location.js"></script>
+  <script src="/pages.js"></script>
+</body>
+</html>

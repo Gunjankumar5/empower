@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Emergency Contacts - EMPOWER SAFE">
+  <title>Contacts - EMPOWER SAFE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="contacts">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <ul class="navbar-menu">
+        <li><a href="/dashboard.html">Dashboard</a></li>
+        <li><a href="/contacts.html">Contacts</a></li>
+        <li><a href="/profile.html">Profile</a></li>
+        <li><a href="/map.html">Map</a></li>
+        <li><a href="/features.html">Features</a></li>
+        <li><a href="/history.html">History</a></li>
+        <li><button id="logoutBtn" class="btn btn-sm btn-danger">Logout</button></li>
+      </ul>
+      <button class="navbar-toggle">☰</button>
+    </div>
+  </nav>
+
+  <main class="page">
+    <section class="page-content">
+      <div class="container" style="padding-top: 32px; padding-bottom: 32px;">
+        <div class="flex-between" style="gap: 16px; flex-wrap: wrap; margin-bottom: 24px;">
+          <div>
+            <h1 style="margin-bottom: 8px;">Emergency Contacts</h1>
+            <p>Add and manage the people who will be notified during an emergency.</p>
+          </div>
+          <button id="addContactBtn" class="btn btn-primary btn-lg">Add Contact</button>
+        </div>
+
+        <div id="contactsList" class="grid" style="gap: 16px;"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="contactModal" class="modal">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="contactModalTitle">Add Contact</h3>
+        <button type="button" class="modal-close btn btn-ghost btn-sm" id="contactModalClose">×</button>
+      </div>
+      <form id="contactForm" style="display: grid; gap: 16px;">
+        <input type="hidden" id="contactId">
+        <div class="form-group"><label for="contactName">Name</label><input id="contactName" type="text" required></div>
+        <div class="form-group"><label for="contactPhone">Phone</label><input id="contactPhone" type="tel" required></div>
+        <div class="form-group"><label for="contactEmail">Email</label><input id="contactEmail" type="email"></div>
+        <div class="form-group"><label for="contactRelation">Relation</label><input id="contactRelation" type="text" placeholder="Mother, Friend, etc."></div>
+        <div id="contactError"></div>
+        <div class="modal-footer">
+          <button type="button" id="contactCancelBtn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="contactSubmitBtn" class="btn btn-primary">
+            <span id="contactSubmitText">Save Contact</span>
+            <span id="contactSubmitSpinner" class="hidden" style="margin-left: 10px;"><span class="spinner"></span></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script src="/advanced-location.js"></script>
+  <script src="/pages.js"></script>
+</body>
+</html>

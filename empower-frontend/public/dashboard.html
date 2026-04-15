@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dashboard - EMPOWER SAFE">
+  <title>Dashboard - EMPOWER SAFE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="dashboard">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <ul class="navbar-menu">
+        <li><a href="/dashboard.html">Dashboard</a></li>
+        <li><a href="/contacts.html">Contacts</a></li>
+        <li><a href="/profile.html">Profile</a></li>
+        <li><a href="/map.html">Map</a></li>
+        <li><a href="/features.html">Features</a></li>
+        <li><a href="/history.html">History</a></li>
+        <li><button id="logoutBtn" class="btn btn-sm btn-danger">Logout</button></li>
+      </ul>
+      <button class="navbar-toggle">☰</button>
+    </div>
+  </nav>
+
+  <main class="page">
+    <section class="page-content">
+      <div class="container" style="padding-top: 32px; padding-bottom: 32px;">
+        <div class="hero" style="margin-bottom: 24px; text-align: left;">
+          <h1 id="welcomeName">Welcome</h1>
+          <p id="dashboardStatus">Ready</p>
+          <p style="color: rgba(255,255,255,0.9); margin-bottom: 0;">Protect yourself with one tap and instant location-based alerts.</p>
+        </div>
+
+        <section class="grid grid-3" style="margin-bottom: 24px;">
+          <div class="card" style="text-align: center;">
+            <h2 id="alertsCount" style="margin-bottom: 6px;">0</h2>
+            <p style="margin-bottom: 0;">Total Alerts</p>
+          </div>
+          <div class="card" style="text-align: center;">
+            <h2 id="contactsCount" style="margin-bottom: 6px;">0</h2>
+            <p style="margin-bottom: 0;">Emergency Contacts</p>
+          </div>
+          <div class="card" style="text-align: center;">
+            <h2 id="profileName" style="margin-bottom: 6px;">--</h2>
+            <p style="margin-bottom: 0;">Profile</p>
+          </div>
+        </section>
+
+        <section class="card" style="text-align: center; padding: 40px 24px;">
+          <h2 style="margin-bottom: 12px;">Emergency SOS</h2>
+          <p style="margin-bottom: 24px;">Hold your phone steady. You have 3 seconds to cancel after tapping the button.</p>
+          <button id="sosBtn" class="sos-button" aria-label="Send emergency alert">
+            <span id="sosBtnText">SOS</span>
+            <span id="sosBtnSpinner" class="hidden" style="margin-top: 10px;"><span class="spinner"></span></span>
+          </button>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+  <script src="/advanced-location.js"></script>
+  <script src="/pages.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Profile - EMPOWER SAFE">
+  <title>Profile - EMPOWER SAFE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="profile">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <ul class="navbar-menu">
+        <li><a href="/dashboard.html">Dashboard</a></li>
+        <li><a href="/contacts.html">Contacts</a></li>
+        <li><a href="/profile.html">Profile</a></li>
+        <li><a href="/map.html">Map</a></li>
+        <li><a href="/features.html">Features</a></li>
+        <li><a href="/history.html">History</a></li>
+        <li><button id="logoutBtn" class="btn btn-sm btn-danger">Logout</button></li>
+      </ul>
+      <button class="navbar-toggle">☰</button>
+    </div>
+  </nav>
+
+  <main class="page">
+    <section class="page-content">
+      <div class="container-sm" style="padding-top: 32px; padding-bottom: 32px;">
+        <div class="card">
+          <h1 style="margin-bottom: 8px;">Profile</h1>
+          <p style="margin-bottom: 24px;">Update your name, phone, picture, and NFC tag registration.</p>
+
+          <form id="profileForm" style="display: grid; gap: 16px;">
+            <div class="form-group"><label for="profileNameInput">Name</label><input id="profileNameInput" type="text" required></div>
+            <div class="form-group"><label for="profileEmailInput">Email</label><input id="profileEmailInput" type="email" disabled></div>
+            <div class="form-group"><label for="profilePhoneInput">Phone</label><input id="profilePhoneInput" type="tel" required></div>
+            <div class="form-group"><label for="profilePicInput">Profile Picture URL</label><input id="profilePicInput" type="url" placeholder="https://..."></div>
+            <div class="form-group"><label>Registered NFC Tag</label><div id="profileNfcTag" class="card" style="padding: 14px 16px;">Not registered</div></div>
+            <div id="profileError"></div>
+            <button id="profileSubmitBtn" type="submit" class="btn btn-primary">
+              <span id="profileSubmitText">Save Changes</span>
+              <span id="profileSubmitSpinner" class="hidden" style="margin-left: 10px;"><span class="spinner"></span></span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+  <script src="/advanced-location.js"></script>
+  <script src="/pages.js"></script>
+</body>
+</html>

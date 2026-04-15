@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Register for EMPOWER SAFE">
+  <title>Register - EMPOWER SAFE</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="register">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <button class="navbar-toggle">☰</button>
+    </div>
+  </nav>
+
+  <main class="page">
+    <section class="page-content">
+      <div class="container-sm" style="padding-top: 32px; padding-bottom: 32px;">
+        <!-- Progress Indicator -->
+        <div style="margin-bottom: 32px; display: flex; gap: 12px; justify-content: center;">
+          <div class="progress-step active" data-step="1">
+            <div class="progress-circle">1</div>
+            <div class="progress-label">Account</div>
+          </div>
+          <div class="progress-divider"></div>
+          <div class="progress-step" data-step="2">
+            <div class="progress-circle">2</div>
+            <div class="progress-label">Contacts</div>
+          </div>
+        </div>
+
+        <div class="card" style="max-width: 520px; margin: 0 auto;">
+          <!-- Step 1: Account Details -->
+          <div id="step1Content" style="display: block;">
+            <div style="text-align: center; margin-bottom: 32px;">
+              <div class="feature-icon" style="margin: 0 auto 16px;">✨</div>
+              <h1>Create Your Account</h1>
+              <p>Set up your EMPOWER SAFE profile.</p>
+            </div>
+
+            <form id="accountForm" style="display: grid; gap: 18px;">
+              <div class="form-group">
+                <label for="name">Full Name</label>
+                <input id="name" type="text" placeholder="Your full name" required>
+              </div>
+              <div class="form-group">
+                <label for="email">Email Address</label>
+                <input id="email" type="email" placeholder="you@example.com" required>
+              </div>
+              <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input id="phone" type="tel" placeholder="+1 (555) 000-0000" required>
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" type="password" placeholder="At least 8 characters" required>
+                <small style="color: var(--text-light); display: block; margin-top: 4px;">Must be at least 8 characters</small>
+              </div>
+              <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input id="confirmPassword" type="password" placeholder="Confirm your password" required>
+              </div>
+              <div id="step1Error"></div>
+              <button type="button" id="step1NextBtn" class="btn btn-primary btn-lg">Continue to Contacts</button>
+            </form>
+
+            <p style="text-align: center; margin-top: 24px;">
+              Already have an account? <a href="/login.html">Sign in</a>
+            </p>
+          </div>
+
+          <!-- Step 2: Emergency Contacts -->
+          <div id="step2Content" style="display: none;">
+            <div style="text-align: center; margin-bottom: 24px;">
+              <div class="feature-icon" style="margin: 0 auto 16px;">👥</div>
+              <h1>Emergency Contacts</h1>
+              <p>Add people to notify when you trigger an SOS alert.</p>
+            </div>
+
+            <form id="contactsForm" style="display: grid; gap: 18px;">
+              <div id="contactsList" style="display: grid; gap: 16px; margin-bottom: 16px;"></div>
+              
+              <button type="button" id="addContactBtn" class="btn btn-secondary" style="margin-bottom: 8px;">
+                + Add Contact
+              </button>
+
+              <div id="step2Error"></div>
+              
+              <div style="display: flex; gap: 10px;">
+                <button type="button" id="step2BackBtn" class="btn btn-ghost" style="flex: 1;">Back</button>
+                <button type="submit" id="registerBtn" class="btn btn-primary" style="flex: 1;">
+                  <span id="registerText">Create Account</span>
+                  <span id="registerSpinner" class="hidden" style="margin-left: 10px;"><span class="spinner"></span></span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+  <script src="/pages.js"></script>
+</body>
+</html>

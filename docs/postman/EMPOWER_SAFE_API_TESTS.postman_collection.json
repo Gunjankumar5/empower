@@ -1,0 +1,577 @@
+{
+  "info": {
+    "_postman_id": "empower-safe-api-tests",
+    "name": "EMPOWER SAFE - Advanced Location Features",
+    "description": "Complete API test collection for real-time location streaming, geofencing, and offline maps endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "empower-safe-2026"
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication & Setup",
+      "item": [
+        {
+          "name": "ℹ️ README - How to Use This Collection",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://www.postman.com/product/what-is-postman/",
+              "protocol": "https",
+              "host": [
+                "www",
+                "postman",
+                "com"
+              ],
+              "path": [
+                "product",
+                "what-is-postman"
+              ]
+            },
+            "description": "**SETUP INSTRUCTIONS:**\n\n1. **Set Environment Variables:**\n   - Click the environment dropdown (top-right)\n   - Select \"Manage Environments\"\n   - Create a new environment called \"EMPOWER SAFE Local\"\n   - Add these variables:\n     ```\n     base_url: http://localhost:5000\n     token: [your-jwt-token-here]\n     alert_id: [alert-id-from-trigger]\n     zone_id: [zone-id-from-create]\n     ```\n\n2. **Get a Token:**\n   - Register or login using the auth endpoints\n   - Copy the JWT token from the response\n   - Paste it into the `token` environment variable\n\n3. **Create an Alert (for location streaming):**\n   - Run the SOS trigger endpoint\n   - Copy the alert ID from response\n   - Paste it into `alert_id` environment variable\n\n4. **Test Endpoints in Order:**\n   - Start with GET /api/profile/safe-zones (should be empty)\n   - Create a zone with POST /api/profile/safe-zones\n   - Copy zone ID and paste to `zone_id` variable\n   - Stream a location to the alert\n   - Delete the zone\n\n**ENDPOINTS IN THIS COLLECTION:**\n- POST /api/alerts/:alertId/location - Stream real-time location\n- POST /api/profile/safe-zones - Create safe zone\n- GET /api/profile/safe-zones - List safe zones\n- DELETE /api/profile/safe-zones/:zoneId - Delete safe zone\n\n**REQUIRED ENVIRONMENT VARIABLES:**\n- `base_url` - Backend URL (default: http://localhost:5000)\n- `token` - JWT authentication token\n- `alert_id` - Active alert ID (for location streaming)\n- `zone_id` - Safe zone ID (for deletion)\n\n**EXPECTED MONGODB STATE:**\n- MongoDB running on localhost:27017\n- Database: empower_safe\n- User account with active alerts\n\n**TROUBLESHOOTING:**\n- If 401 Unauthorized: Token is expired or invalid\n- If 404 Alert not found: Alert ID doesn't exist\n- If Cannot connect: Backend not running on port 5000\n- If MongoDB error: Start MongoDB with docker-compose up -d"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📍 Real-Time Location Streaming",
+      "item": [
+        {
+          "name": "POST - Stream Location Update",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate current timestamp",
+                  "pm.environment.set('current_timestamp', new Date().toISOString());",
+                  "",
+                  "// Log request details for debugging",
+                  "console.log('Streaming location to alert: ' + pm.environment.get('alert_id'));",
+                  "console.log('Base URL: ' + pm.environment.get('base_url'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test: Check response status",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test: Check response structure",
+                  "pm.test('Response has success and data fields', function() {",
+                  "    let jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "});",
+                  "",
+                  "// Test: Verify location trail length increased",
+                  "pm.test('Location trail tracked', function() {",
+                  "    let jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('trailLength');",
+                  "    pm.expect(jsonData.data.trailLength).to.be.greaterThan(0);",
+                  "});",
+                  "",
+                  "// Log success message",
+                  "console.log('✅ Location streamed successfully. Trail length: ' + pm.response.json().data.trailLength);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat\": 28.6139,\n  \"lng\": 77.2090,\n  \"accuracy\": 25\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/alerts/{{alert_id}}/location",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "alerts",
+                "{{alert_id}}",
+                "location"
+              ]
+            },
+            "description": "**Stream real-time location during active SOS alert**\n\nThis endpoint is called by frontend every 5 seconds during an active alert to provide continuous location updates to emergency contacts.\n\n**Request Parameters:**\n- `lat` (number, required): Latitude (-90 to 90)\n- `lng` (number, required): Longitude (-180 to 180)\n- `accuracy` (number, optional): GPS accuracy in meters (0-1000)\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"message\": \"Location updated\",\n    \"trailLength\": 5\n  }\n}\n```\n\n**Status Codes:**\n- 200: Location updated successfully\n- 400: Missing required fields or resolved alert\n- 401: Unauthorized (invalid token)\n- 404: Alert not found or doesn't belong to user\n- 500: Server error\n\n**Notes:**\n- Only works for active (unresolved) alerts\n- Locations are stored in `locationTrail` array\n- Max 1000 locations per alert (sliding window)\n- Each location includes: lat, lng, accuracy, timestamp"
+          }
+        },
+        {
+          "name": "📖 How Location Streaming Works",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://example.com",
+              "protocol": "https",
+              "host": [
+                "example",
+                "com"
+              ]
+            },
+            "description": "**REAL-TIME LOCATION STREAMING WORKFLOW:**\n\n```\nUser Triggers SOS Alert\n        |\n        v\nSOS Endpoint Creates Alert\n        |\n        v\nFrontend Gets Alert ID\n        |\n        v\nLocationStreamer.startStreaming(alertId)\n        |\n        v\nBrowser watchPosition() starts tracking\n        |\n        v\nEvery 5 seconds:\n  POST /api/alerts/:id/location\n    - lat, lng, accuracy\n    - timestamp (auto)\n        |\n        v\nBackend Appends to locationTrail\n        |\n        v\nEmergency Contacts See Live Location\n        |\n        v\nUser Closes Alert or Timer Expires\n        |\n        v\nLocationStreamer.stopStreaming(alertId)\n        |\n        v\nNo More Location Updates\n```\n\n**EXAMPLE REQUEST FLOW:**\n\n1. POST /api/alerts/trigger → Get alert ID: `63f7a1b2c3d4e5f6g7h8i9j0`\n2. Streaming starts automatically in frontend\n3. Repeat 120 times (10 minutes):\n   - POST /api/alerts/63f7a1b2c3d4e5f6g7h8i9j0/location\n   - Body: {lat: 28.6139, lng: 77.2090, accuracy: 25}\n4. Response: {success: true, trailLength: 120}\n5. User resolves alert or 10 min expires\n6. Streaming stops\n\n**DATA FLOW IN DATABASE:**\n\n```\nAlert Document:\n{\n  _id: \"63f7a1b2c3d4e5f6g7h8i9j0\",\n  userId: \"...\",\n  location: {\n    lat: 28.6139,\n    lng: 77.2090,\n    address: \"...\"\n  },\n  locationTrail: [\n    { lat: 28.6140, lng: 77.2091, accuracy: 25, timestamp: 2026-04-15T10:00:00Z },\n    { lat: 28.6141, lng: 77.2092, accuracy: 22, timestamp: 2026-04-15T10:00:05Z },\n    { lat: 28.6142, lng: 77.2093, accuracy: 20, timestamp: 2026-04-15T10:00:10Z },\n    ...\n  ],\n  resolved: false\n}\n```\n\n**BEST PRACTICES:**\n- Always send location with ±5 second intervals\n- Include accuracy for uncertainty quantification\n- Stop streaming when alert resolves\n- Handle network errors with exponential backoff\n- Don't exceed 1000 locations per alert (auto-trimmed)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏠 Safe Zones (Geofencing)",
+      "item": [
+        {
+          "name": "GET - List All Safe Zones",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test: Check response status",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test: Check response structure",
+                  "pm.test('Response contains zones array', function() {",
+                  "    let jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "    pm.expect(jsonData.data).to.have.property('zones');",
+                  "    pm.expect(jsonData.data.zones).to.be.an('array');",
+                  "});",
+                  "",
+                  "// Extract first zone ID if available",
+                  "let jsonData = pm.response.json();",
+                  "if (jsonData.data.zones && jsonData.data.zones.length > 0) {",
+                  "    pm.environment.set('zone_id', jsonData.data.zones[0].id);",
+                  "    console.log('✅ Found ' + jsonData.data.zones.length + ' zones');",
+                  "    console.log('Zone ID set to: ' + jsonData.data.zones[0].id);",
+                  "} else {",
+                  "    console.log('⚠️  No zones found. Create one first.');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile/safe-zones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "safe-zones"
+              ]
+            },
+            "description": "**Retrieve all safe zones for the authenticated user**\n\nThis endpoint fetches all geofencing boundaries the user has created for continuous location monitoring.\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"zones\": [\n      {\n        \"id\": \"a1b2c3d4e5f6g7h8i9j0k1\",\n        \"name\": \"Home\",\n        \"lat\": 28.6139,\n        \"lng\": 77.2090,\n        \"radius\": 1000,\n        \"createdAt\": \"2026-04-15T10:00:00.000Z\"\n      }\n    ]\n  }\n}\n```\n\n**Status Codes:**\n- 200: Zones retrieved successfully\n- 401: Unauthorized (invalid token)\n- 404: User not found\n- 500: Server error\n\n**Notes:**\n- Returns empty array if no zones exist\n- Auto-extracts first zone ID to `zone_id` environment variable\n- Use returned zone IDs for deletion\n- Maximum 10 zones per user"
+          }
+        },
+        {
+          "name": "POST - Create Safe Zone",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate a unique zone name with timestamp",
+                  "const timestamp = new Date().getTime();",
+                  "const zoneName = 'Test Zone ' + timestamp;",
+                  "pm.environment.set('zone_name', zoneName);",
+                  "console.log('Creating zone: ' + zoneName);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test: Check response status",
+                  "pm.test('Status code is 201 (Created)', function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "// Test: Check response structure",
+                  "pm.test('Response contains created zone', function() {",
+                  "    let jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "    pm.expect(jsonData.data).to.have.property('zone');",
+                  "});",
+                  "",
+                  "// Extract and store zone ID for later deletion",
+                  "let jsonData = pm.response.json();",
+                  "if (jsonData.data.zone && jsonData.data.zone.id) {",
+                  "    pm.environment.set('zone_id', jsonData.data.zone.id);",
+                  "    console.log('✅ Zone created successfully');",
+                  "    console.log('Zone ID: ' + jsonData.data.zone.id);",
+                  "    console.log('Zone Name: ' + jsonData.data.zone.name);",
+                  "    console.log('Radius: ' + jsonData.data.zone.radius + ' meters');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{zone_name}}\",\n  \"lat\": 28.6139,\n  \"lng\": 77.2090,\n  \"radius\": 1000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profile/safe-zones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "safe-zones"
+              ]
+            },
+            "description": "**Create a new safe zone for geofencing**\n\nSafe zones define geographic boundaries where the app monitors user movement. The system alerts when user exits or enters a zone.\n\n**Request Body:**\n```json\n{\n  \"name\": \"Home\",\n  \"lat\": 28.6139,\n  \"lng\": 77.2090,\n  \"radius\": 1000\n}\n```\n\n**Parameters:**\n- `name` (string, required): Zone name (max 50 chars)\n- `lat` (number, required): Center latitude (-90 to 90)\n- `lng` (number, required): Center longitude (-180 to 180)\n- `radius` (number, required): Zone radius in meters (100-50000)\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"zone\": {\n      \"id\": \"a1b2c3d4e5f6g7h8i9j0k1\",\n      \"name\": \"Home\",\n      \"lat\": 28.6139,\n      \"lng\": 77.2090,\n      \"radius\": 1000,\n      \"createdAt\": \"2026-04-15T10:00:00.000Z\"\n    }\n  }\n}\n```\n\n**Status Codes:**\n- 201: Zone created successfully\n- 400: Invalid parameters or duplicate name\n- 401: Unauthorized (invalid token)\n- 404: User not found\n- 500: Server error\n\n**Validation Rules:**\n- Name must not be empty\n- Latitude must be -90 to 90\n- Longitude must be -180 to 180\n- Radius must be 100-50000 meters\n- Cannot create duplicate zone names\n- Maximum 10 zones per user\n\n**Common Test Cases:**\n\n*Valid Zone:*\n```json\n{\"name\": \"Office\", \"lat\": 28.5355, \"lng\": 77.3910, \"radius\": 500}\n```\n\n*Invalid - Radius Too Small:*\n```json\n{\"name\": \"Store\", \"lat\": 28.6139, \"lng\": 77.2090, \"radius\": 50}\n```\n→ Error: Radius must be between 100 and 50000 meters\n\n*Invalid - Bad Latitude:*\n```json\n{\"name\": \"Park\", \"lat\": 91, \"lng\": 77.2090, \"radius\": 1000}\n```\n→ Error: Invalid latitude/longitude values"
+          }
+        },
+        {
+          "name": "DELETE - Remove Safe Zone",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test: Check response status",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test: Check response structure",
+                  "pm.test('Response confirms deletion', function() {",
+                  "    let jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "    pm.expect(jsonData.data).to.have.property('message');",
+                  "    pm.expect(jsonData.data.message).to.include('deleted');",
+                  "});",
+                  "",
+                  "// Clear zone_id from environment",
+                  "pm.environment.set('zone_id', '[use-zone-id-from-list]');",
+                  "console.log('✅ Zone deleted successfully');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile/safe-zones/{{zone_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "safe-zones",
+                "{{zone_id}}"
+              ]
+            },
+            "description": "**Delete a safe zone**\n\nRemoves a geofencing boundary. The app will no longer monitor this zone.\n\n**URL Parameters:**\n- `zoneId` (string, required): Zone ID from creation or list response\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"message\": \"Zone deleted successfully\",\n    \"zones\": [\n      {\n        \"id\": \"...\",\n        \"name\": \"...\",\n        \"lat\": 28.6139,\n        \"lng\": 77.2090,\n        \"radius\": 1000,\n        \"createdAt\": \"...\"\n      }\n    ]\n  }\n}\n```\n\n**Status Codes:**\n- 200: Zone deleted successfully\n- 400: Zone ID is required\n- 401: Unauthorized (invalid token)\n- 404: Zone not found or doesn't belong to user\n- 500: Server error\n\n**Notes:**\n- Deleting a zone stops geofencing for that boundary\n- Returns updated list of remaining zones\n- Zone IDs from previous list response should be used\n- Attempting to delete non-existent zone returns 404"
+          }
+        },
+        {
+          "name": "📖 How Geofencing Works",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://example.com",
+              "protocol": "https",
+              "host": [
+                "example",
+                "com"
+              ]
+            },
+            "description": "**GEOFENCING (SAFE ZONES) WORKFLOW:**\n\n```\nUser Creates Safe Zone\n(Home: 28.6139°N, 77.2090°E, 1000m radius)\n        |\n        v\nSafeZoneManager.addZone() \n        - Stored in user.safe_zones array\n        - Uses Haversine formula for distance\n        |\n        v\nUser Calls initGeofencing()\n        - Starts continuous background monitoring\n        - Compares current location to all zones\n        |\n        v\nEvery 10-30 seconds (background):\n  1. Get current GPS position\n  2. Calculate distance using Haversine\n  3. Check if inside/outside zone\n  4. Compare with previous state\n        |\n        v\nIf Zone Exit Detected:\n  - Trigger: onExit('Home') callback\n  - Log: \"⚠️ You left: Home\"\n  - Store: Exit event with timestamp\n        |\n        v\nIf Zone Entry Detected:\n  - Trigger: onEnter('Home') callback\n  - Log: \"✅ Entered: Home\"\n  - Store: Entry event with timestamp\n```\n\n**HAVERSINE DISTANCE FORMULA:**\n\nCalculates great-circle distance between two points:\n\n```\nLatitude 1: 28.6139°\nLongitude 1: 77.2090°\n      |\nDistance Formula\n      |\nLatitude 2: 28.6150°\nLongitude 2: 77.2100°\n      |\n      v\nDistance ≈ 125 meters\n      |\n      v\nZone Radius = 1000 meters\n      |\n      v\nInside Zone? YES (125m < 1000m)\n```\n\n**EXAMPLE SAFE ZONES SETUP:**\n\n```json\n{\n  \"safe_zones\": [\n    {\n      \"id\": \"zone_1\",\n      \"name\": \"Home\",\n      \"lat\": 28.6139,\n      \"lng\": 77.2090,\n      \"radius\": 1000,\n      \"createdAt\": \"2026-04-15T10:00:00Z\"\n    },\n    {\n      \"id\": \"zone_2\",\n      \"name\": \"Office\",\n      \"lat\": 28.5355,\n      \"lng\": 77.3910,\n      \"radius\": 500,\n      \"createdAt\": \"2026-04-15T10:05:00Z\"\n    },\n    {\n      \"id\": \"zone_3\",\n      \"name\": \"Gym\",\n      \"lat\": 28.6300,\n      \"lng\": 77.2100,\n      \"radius\": 300,\n      \"createdAt\": \"2026-04-15T10:10:00Z\"\n    }\n  ]\n}\n```\n\n**GEOFENCING MONITORING STATE:**\n\n```\nZone: Home (1000m radius)\n\nTime 10:15:00\n  Location: 28.6139, 77.2090 (exact center)\n  Distance: 0m\n  Status: INSIDE ✅\n  \nTime 10:16:00\n  Location: 28.6200, 77.2200 (moved away)\n  Distance: 842m\n  Status: INSIDE ✅ (still within 1000m)\n  \nTime 10:17:00\n  Location: 28.6300, 77.2300 (further away)\n  Distance: 1500m\n  Status: OUTSIDE ⚠️\n  Event: EXIT triggered\n  Alert: \"⚠️ You left: Home\"\n  \nTime 10:25:00\n  Location: 28.6200, 77.2200 (returned)\n  Distance: 842m\n  Status: INSIDE ✅\n  Event: ENTER triggered\n  Alert: \"✅ Welcome back to: Home\"\n```\n\n**ACCURACY NOTES:**\n- Haversine formula accurate to ±100 meters\n- GPS accuracy varies (5-50m typical)\n- Combined uncertainty ≈ 150-200 meters\n- Use larger radius for reliable boundary\n- Avoid zones < 300m radius\n\n**USE CASES:**\n1. Parent monitoring teen\n2. Workplace attendance tracking\n3. Routine deviation alerts\n4. Safe area verification\n5. Commute tracking"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔄 Complete Test Workflow",
+      "item": [
+        {
+          "name": "1️⃣ Get Existing Zones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile/safe-zones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "safe-zones"
+              ]
+            },
+            "description": "First step: Check what zones already exist"
+          }
+        },
+        {
+          "name": "2️⃣ Create New Zone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Zone\",\n  \"lat\": 28.6139,\n  \"lng\": 77.2090,\n  \"radius\": 1000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profile/safe-zones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "safe-zones"
+              ]
+            },
+            "description": "Second step: Create a test zone (copy ID from response)"
+          }
+        },
+        {
+          "name": "3️⃣ Verify Zone Created",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile/safe-zones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "safe-zones"
+              ]
+            },
+            "description": "Third step: Verify zone appears in list"
+          }
+        },
+        {
+          "name": "4️⃣ Stream Location (Set alert_id first!)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat\": 28.6139,\n  \"lng\": 77.2090,\n  \"accuracy\": 25\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/alerts/{{alert_id}}/location",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "alerts",
+                "{{alert_id}}",
+                "location"
+              ]
+            },
+            "description": "Fourth step: Stream a location (requires active alert_id)"
+          }
+        },
+        {
+          "name": "5️⃣ Delete Zone (Set zone_id first!)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile/safe-zones/{{zone_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "safe-zones",
+                "{{zone_id}}"
+              ]
+            },
+            "description": "Fifth step: Delete the zone (copy zone_id from creation response)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🐛 Troubleshooting",
+      "item": [
+        {
+          "name": "Test MongoDB Connection",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "description": "Quick health check - if this fails, backend isn't running:\n\n✅ Success Response:\n```json\n{\"status\":\"ok\",\"message\":\"EMPOWER SAFE Backend is running\"}\n```\n\n❌ Failure Meaning:\n- Backend server not running\n- Port 5000 in use by another process\n- Network connectivity issue"
+          }
+        },
+        {
+          "name": "Common Errors & Solutions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://example.com",
+              "protocol": "https",
+              "host": [
+                "example",
+                "com"
+              ]
+            },
+            "description": "**ERROR: Cannot POST /api/profile/safe-zones**\n\nCause: Invalid path or method\nSolution: Check endpoint spelling, use POST method\n\n---\n\n**ERROR: 401 Unauthorized**\n\nCause: Invalid or expired JWT token\nSolution:\n1. Login/Register to get new token\n2. Copy token from response\n3. Paste in Postman environment `token` variable\n4. Retry request\n\n---\n\n**ERROR: 404 Alert not found**\n\nCause: alert_id doesn't exist or belongs to different user\nSolution:\n1. Trigger a new SOS alert via /api/alerts/trigger\n2. Copy the alert ID from response\n3. Paste in `alert_id` environment variable\n4. Retry location streaming\n\n---\n\n**ERROR: 400 Zone with this name already exists**\n\nCause: Duplicate zone name\nSolution:\n1. Use GET /api/profile/safe-zones to see existing\n2. Delete old zone with DELETE endpoint\n3. Create new zone with unique name\n\n---\n\n**ERROR: 400 Radius must be between 100 and 50000 meters**\n\nCause: Invalid radius value\nSolution: Update radius to value between 100-50000\n\nExamples:\n- 100m = Very small neighborhood\n- 500m = Small zone (3-4 block radius)\n- 1000m = Medium zone (1km radius)\n- 5000m = Large zone (5km radius)\n\n---\n\n**ERROR: Cannot connect to backend**\n\nSolution:\n1. Start backend: `npm start` from empower-backend/\n2. Wait for: \"🚀 Server running on port 5000\"\n3. Check base_url in Postman environment\n4. Verify base_url = http://localhost:5000\n\n---\n\n**ERROR: ECONNREFUSED Monday connection fails**\n\nSolution:\n1. Start MongoDB: See docker-compose.yml\n2. Verify MongoDB running: `netstat -ano | grep 27017`\n3. Check MONGODB_URI in .env file\n4. Verify .env has: `MONGODB_URI=mongodb://admin:password@localhost:27017/empower_safe`\n\n---\n\n**ERROR: 500 Internal Server Error**\n\nSolution:\n1. Check backend console for error message\n2. Verify all required fields in request body\n3. Ensure MongoDB is running\n4. Check .env configuration\n5. Restart backend after changes"
+          }
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set default base_url if not set",
+          "if (!pm.environment.get('base_url')) {",
+          "    pm.environment.set('base_url', 'http://localhost:5000');",
+          "}",
+          "",
+          "// Ensure token is set",
+          "if (!pm.environment.get('token') || pm.environment.get('token') === '[your-jwt-token-here]') {",
+          "    console.log('⚠️  WARNING: Token not set. See collection info for setup instructions.');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "[your-jwt-token-here]",
+      "type": "string"
+    },
+    {
+      "key": "alert_id",
+      "value": "[alert-id-from-trigger]",
+      "type": "string"
+    },
+    {
+      "key": "zone_id",
+      "value": "[zone-id-from-create]",
+      "type": "string"
+    },
+    {
+      "key": "zone_name",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "current_timestamp",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
