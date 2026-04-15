@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: empower-backend
+    runtime: node
+    rootDir: empower-backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    
+    # Environment variables that should be set in Render dashboard:
+    # MONGODB_URI - MongoDB connection string (keep secure)
+    # JWT_SECRET - JWT secret key (generate a new one for production)
+    # TWILIO_ACCOUNT_SID - Optional (for SMS features)
+    # TWILIO_AUTH_TOKEN - Optional (for SMS features)
+    # TWILIO_PHONE_NUMBER - Optional (for SMS features)
+    # FIREBASE_SERVICE_ACCOUNT - Optional (for push notifications)
