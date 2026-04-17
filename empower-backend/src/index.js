@@ -14,8 +14,8 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: process.env.NODE_ENV === 'production' ? true : ['http://localhost:3000', 'http://localhost:5000'],
-    credentials: true,
+    origin: '*',
+    credentials: false,
   })
 );
 
