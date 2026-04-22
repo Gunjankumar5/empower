@@ -7,7 +7,7 @@ class API {
   constructor(baseURL) {
     // Prefer same-origin API calls; fallback for file:// or unset origin.
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const defaultBaseURL = origin && origin !== 'null' ? origin : 'http://localhost:5000';
+    const defaultBaseURL = origin && origin !== 'null' ? origin : 'https://empower-js3w.onrender.com';
     this.baseURL = baseURL || defaultBaseURL;
     this.token = this.getToken();
   }
