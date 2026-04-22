@@ -28,9 +28,9 @@ const formatMapsLink = (lat, lng) => {
 
 const sendSMS = async (to, message, meta = {}) => {
   const smsClient = getClient();
-  const from = process.env.TWILIO_PHONE_NUMBER;
+  const messagingServiceSid = process.env.TWILIO_MESSAGING_SID;
 
-  if (!smsClient || !from) {
+  if (!smsClient || !messagingServiceSid) {
     console.warn(`Twilio not configured. Skipping SMS to ${to}.`);
     return { success: false, skipped: true };
   }
@@ -38,7 +38,7 @@ const sendSMS = async (to, message, meta = {}) => {
   const body = `${message}\n${meta.mapsLink ? `Maps: ${meta.mapsLink}\n` : ''}`.trim();
 
   const response = await smsClient.messages.create({
-    from,
+    messagingServiceSid,
     to,
     body,
   });
