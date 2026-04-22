@@ -7,7 +7,7 @@ class API {
   constructor(baseURL) {
     // Prefer same-origin API calls; fallback for file:// or unset origin.
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const defaultBaseURL = origin && origin !== 'null' ? origin : 'https://empower-js3w.onrender.com';
+    const defaultBaseURL = 'https://empower-backend-apo9.onrender.com';
     this.baseURL = baseURL || defaultBaseURL;
     this.token = this.getToken();
   }
@@ -983,7 +983,7 @@ const throttle = (fn, limit = 1000) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const API_BASE = window.API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE = 'https://empower-backend-apo9.onrender.com/api';
 
 function getToken() {
   return localStorage.getItem('token');
