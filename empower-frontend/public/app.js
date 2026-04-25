@@ -5,9 +5,10 @@
 
 class API {
   constructor(baseURL) {
-    // Prefer same-origin API calls; fallback for file:// or unset origin.
+    // Use localhost for development, otherwise use production URL
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const defaultBaseURL = origin && origin !== 'null' ? origin : 'https://empower-js3w.onrender.com';
+    const defaultBaseURL = isDevelopment ? 'http://localhost:5000' : (origin && origin !== 'null' ? origin : 'https://empower-js3w.onrender.com');
     this.baseURL = baseURL || defaultBaseURL;
     this.token = this.getToken();
   }
@@ -81,47 +82,62 @@ class API {
 
   // User endpoints
   async getUserProfile() {
-    return this.request('/api/users/profile');
+    const response = await this.request('/api/profile');
+    // Ensure response has user property for compatibility with features.js
+    if (response.data) {
+      return { user: response.data };
+    }
+    return { user: response };
   }
 
   async updateProfile(userData) {
-    return this.request('/api/users/profile', {
-      method: 'PATCH',
+    return this.request('/api/profile', {
+      method: 'PUT',
       body: JSON.stringify(userData),
     });
   }
 
   async addContact(name, relation, phone) {
-    return this.request('/api/users/contacts', {
+    return this.request('/api/contacts', {
       method: 'POST',
       body: JSON.stringify({ name, relation, phone }),
     });
   }
 
   async getContacts() {
-    return this.request('/api/users/contacts');
+    return this.request('/api/contacts');
   }
 
   async deleteContact(contactId) {
-    return this.request(`/api/users/contacts/${contactId}`, {
+    return this.request(`/api/contacts/${contactId}`, {
       method: 'DELETE',
     });
   }
 
-  // Emergency endpoints
-  async createSOS(message, location) {
-    return this.request('/api/incident/create', {
+  // Emergency/Alert endpoints
+  async createSOS(lat, lng, type = 'sos') {
+    return this.request('/api/alerts/trigger', {
       method: 'POST',
-      body: JSON.stringify({ message, location }),
+      body: JSON.stringify({ lat, lng, type }),
+    });
+  }
+
+  async getAlerts() {
+    return this.request('/api/alerts/history');
+  }
+
+  async resolveAlert(alertId) {
+    return this.request(`/api/alerts/${alertId}/resolve`, {
+      method: 'PUT',
     });
   }
 
   async getIncidents() {
-    return this.request('/api/incident/history');
+    return this.getAlerts();
   }
 
   async getIncident(id) {
-    return this.request(`/api/incident/${id}`);
+    return this.request(`/api/alerts/${id}`);
   }
 
   // NFC endpoints
@@ -132,86 +148,119 @@ class API {
     });
   }
 
-  // Check-in endpoints
+  // Check-in endpoints (not yet implemented in backend)
   async scheduleCheckIn(scheduledTime, notes) {
-    return this.request('/api/checkin/schedule', {
-      method: 'POST',
-      body: JSON.stringify({ scheduledTime, notes }),
-    });
+    console.warn('scheduleCheckIn not yet implemented in backend');
+    return Promise.resolve({ success: false, data: { message: 'Check-in feature coming soon' } });
   }
 
   async completeCheckIn(checkInId, location) {
-    return this.request(`/api/checkin/${checkInId}/complete`, {
-      method: 'POST',
-      body: JSON.stringify({ location }),
-    });
+    console.warn('completeCheckIn not yet implemented in backend');
+    return Promise.resolve({ success: false, data: { message: 'Check-in feature coming soon' } });
   }
 
   async getCheckIns() {
-    return this.request('/api/checkin/list');
+    console.warn('getCheckIns not yet implemented in backend');
+    return Promise.resolve({ success: false, data: [] });
   }
 
   async deleteCheckIn(checkInId) {
-    return this.request(`/api/checkin/${checkInId}`, {
-      method: 'DELETE',
-    });
+    console.warn('deleteCheckIn not yet implemented in backend');
+    return Promise.resolve({ success: false, data: { message: 'Check-in feature coming soon' } });
   }
 
-  // Community safety endpoints
+  // Community safety endpoints (not yet implemented in backend)
   async submitSafetyReport(reportData) {
-    return this.request('/api/community/report', {
-      method: 'POST',
-      body: JSON.stringify(reportData),
-    });
+    console.warn('submitSafetyReport not yet implemented in backend');
+    return Promise.resolve({ success: false, data: { message: 'Safety reports coming soon' } });
   }
 
   async getNearbySafetyReports(lat, lng, radius) {
-    return this.request('/api/community/nearby', {
-      method: 'POST',
-      body: JSON.stringify({ lat, lng, radius }),
-    });
+    console.warn('getNearbySafetyReports not yet implemented in backend');
+    return Promise.resolve({ success: false, data: [] });
   }
 
   async getSafetyHeatmap(bounds) {
-    return this.request('/api/community/heatmap', {
-      method: 'POST',
-      body: JSON.stringify({ bounds }),
-    });
+    console.warn('getSafetyHeatmap not yet implemented in backend');
+    return Promise.resolve({ success: false, data: {} });
   }
 
   // Safe zones
   async addSafeZone(zoneData) {
-    return this.request('/api/users/safezones', {
+    return this.request('/api/profile/safe-zones', {
       method: 'POST',
       body: JSON.stringify(zoneData),
     });
   }
 
+  async getSafeZones() {
+    return this.request('/api/profile/safe-zones');
+  }
+
   async deleteSafeZone(zoneId) {
-    return this.request(`/api/users/safezones/${zoneId}`, {
+    return this.request(`/api/profile/safe-zones/${zoneId}`, {
       method: 'DELETE',
     });
   }
 
-  // Stats
-  async getUserStats() {
-    return this.request('/api/users/stats');
-  }
-
   // Live location tracking
-  async updateIncidentLocation(incidentId, lat, lng, address) {
-    return this.request(`/api/incident/${incidentId}/location`, {
+  async updateAlertLocation(alertId, lat, lng, accuracy) {
+    return this.request(`/api/alerts/${alertId}/location`, {
       method: 'POST',
-      body: JSON.stringify({ lat, lng, address }),
+      body: JSON.stringify({ lat, lng, accuracy }),
     });
   }
 
-  // Contact acknowledgment
-  async acknowledgeIncident(incidentId, contactData) {
-    return this.request(`/api/incident/${incidentId}/acknowledge`, {
-      method: 'POST',
-      body: JSON.stringify(contactData),
-    });
+  // Phone number utilities
+  static formatPhoneNumber(phone) {
+    if (!phone) return null;
+    
+    // Remove all non-digit characters except +
+    let cleaned = phone.replace(/[^\d+]/g, '');
+    
+    // If already has +, validate it
+    if (cleaned.startsWith('+')) {
+      return cleaned;
+    }
+    
+    // If 10 digits, assume INDIAN number (default)
+    if (cleaned.length === 10) {
+      return `+91${cleaned}`;
+    }
+    
+    // If 12 digits and starts with 91, it's already in +91 format (just add +)
+    if (cleaned.length === 12 && cleaned.startsWith('91')) {
+      return `+${cleaned}`;
+    }
+    
+    // If 11 digits and starts with 1, it's US format
+    if (cleaned.length === 11 && cleaned.startsWith('1')) {
+      return `+${cleaned}`;
+    }
+    
+    // International format - add + if missing
+    return `+${cleaned}`;
+  }
+
+  static validatePhoneNumber(phone) {
+    if (!phone) return { valid: false, error: 'Phone number is required' };
+    
+    const formatted = this.formatPhoneNumber(phone);
+    if (!formatted) {
+      return { valid: false, error: 'Invalid phone number format' };
+    }
+    
+    // E.164 format: +[country code][number]
+    // Indian format: +91 + 10 digits = 13 total
+    // US format: +1 + 10 digits = 12 total
+    if (!/^\+\d{11,15}$/.test(formatted)) {
+      return { 
+        valid: false, 
+        error: 'Phone number should be in Indian format: 9876543210 (will be saved as +919876543210)' 
+      };
+    }
+    
+    return { valid: true, formatted };
   }
 }
 
@@ -255,10 +304,10 @@ class LiveTracker {
         this.lastSent = now;
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        const address = null;
+        const accuracy = pos.coords.accuracy;
 
         try {
-          await this.api.updateIncidentLocation(this.incidentId, lat, lng, address);
+          await this.api.updateAlertLocation(this.incidentId, lat, lng, accuracy);
           console.debug('LiveTracker sent location', lat, lng);
         } catch (err) {
           console.error('LiveTracker failed to send location:', err.message || err);

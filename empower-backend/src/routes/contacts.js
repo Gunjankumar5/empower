@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/user');
 const auth = require('../middlewares/auth');
+const { formatPhoneNumber } = require('../services/twilio');
 
 const router = express.Router();
 
@@ -36,12 +37,18 @@ router.post('/', auth, async (req, res) => {
       return sendError(res, 'name and phone are required', 400);
     }
 
+    // Validate and format phone number to E.164 format
+    const formattedPhone = formatPhoneNumber(phone);
+    if (!formattedPhone) {
+      return sendError(res, 'Invalid phone number format. Use Indian format: 9876543210 or +91-9876543210', 400);
+    }
+
     const user = await User.findById(req.user.id);
     if (!user) {
       return sendError(res, 'User not found', 404);
     }
 
-    user.emergencyContacts.push({ name, phone, email, relation });
+    user.emergencyContacts.push({ name, phone: formattedPhone, email, relation });
     await user.save();
 
     const contact = user.emergencyContacts[user.emergencyContacts.length - 1];
@@ -68,7 +75,13 @@ router.put('/:id', auth, async (req, res) => {
     }
 
     if (name !== undefined) contact.name = name;
-    if (phone !== undefined) contact.phone = phone;
+    if (phone !== undefined) {
+      const formattedPhone = formatPhoneNumber(phone);
+      if (!formattedPhone) {
+        return sendError(res, 'Invalid phone number format. Use Indian format: 9876543210 or +91-9876543210', 400);
+      }
+      contact.phone = formattedPhone;
+    }
     if (email !== undefined) contact.email = email;
     if (relation !== undefined) contact.relation = relation;
 

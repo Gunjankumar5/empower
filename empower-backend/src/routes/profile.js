@@ -53,6 +53,27 @@ router.put('/', auth, async (req, res) => {
   }
 });
 
+// Support both PATCH and PUT methods
+router.patch('/', auth, async (req, res) => {
+  try {
+    const { name, phone, profilePic } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return sendError(res, 'User not found', 404);
+    }
+
+    if (name !== undefined) user.name = name;
+    if (phone !== undefined) user.phone = phone;
+    if (profilePic !== undefined) user.profilePic = profilePic;
+
+    await user.save();
+    return sendSuccess(res, serializeProfile(user));
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return sendError(res, 'Failed to update profile', 500);
+  }
+});
+
 router.post('/nfc', auth, async (req, res) => {
   try {
     const tagId = String(req.body.tagId || '').trim();

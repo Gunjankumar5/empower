@@ -1,0 +1,16 @@
+{
+  "name": "empower-frontend",
+  "version": "1.0.0",
+  "description": "EMPOWER SAFE - Women's Safety Emergency App Frontend",
+  "scripts": {
+    "start": "http-server public -p 8080 -c-1 -g",
+    "dev": "http-server public -p 8080"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "http-server": "^14.1.1",
+    "express": "^5.1.0"
+  }
+}

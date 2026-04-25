@@ -85,6 +85,31 @@ router.get('/reverse-geocode', async (req, res) => {
   }
 });
 
+// Get single alert by ID
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const alert = await Alert.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!alert) {
+      return sendError(res, 'Alert not found', 404);
+    }
+
+    return sendSuccess(res, {
+      id: alert._id,
+      userId: alert.userId,
+      location: alert.location,
+      timestamp: alert.timestamp,
+      type: alert.type,
+      notifiedContacts: alert.notifiedContacts,
+      resolved: alert.resolved,
+      resolvedAt: alert.resolvedAt,
+      locationTrail: alert.locationTrail || [],
+    });
+  } catch (error) {
+    console.error('Get alert error:', error);
+    return sendError(res, 'Failed to load alert', 500);
+  }
+});
+
 // Real-time location streaming during active alerts
 router.post('/:id/location', auth, async (req, res) => {
   try {

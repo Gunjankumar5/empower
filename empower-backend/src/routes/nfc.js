@@ -1,4 +1,5 @@
 const express = require('express');
+const auth = require('../middlewares/auth');
 const User = require('../models/user');
 const { createAndNotifyAlert } = require('../services/alertService');
 
@@ -34,14 +35,14 @@ router.post('/scan', async (req, res) => {
   }
 });
 
-router.post('/register', async (req, res) => {
+router.post('/register', auth, async (req, res) => {
   try {
     const tagId = String(req.body.tagId || '').trim();
     if (!tagId) {
       return sendError(res, 'tagId is required', 400);
     }
 
-    const user = await User.findById(req.body.userId);
+    const user = await User.findById(req.user.id);
     if (!user) {
       return sendError(res, 'User not found', 404);
     }

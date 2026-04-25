@@ -511,10 +511,22 @@ async function initContactsPage() {
       phoneInput.value = contact.phone || '';
       emailInput.value = contact.email || '';
       relationInput.value = contact.relation || '';
+      
+      // Show preview for existing contact
+      const previewBox = $('#contactPhonePreview');
+      const previewFormatted = $('#contactPhoneFormatted');
+      if (contact.phone) {
+        previewFormatted.textContent = contact.phone;
+        previewBox.style.display = 'block';
+        previewBox.style.borderColor = '#0066cc';
+        previewBox.style.background = '#f0f8ff';
+      }
     } else {
       modalTitle.textContent = 'Add Contact';
       contactIdInput.value = '';
       form.reset();
+      const previewBox = $('#contactPhonePreview');
+      previewBox.style.display = 'none';
     }
     modal.classList.add('active');
   };
@@ -599,26 +611,64 @@ async function initContactsPage() {
     }
   });
 
+  // Real-time phone preview
+  phoneInput.addEventListener('input', (e) => {
+    const phone = e.target.value.trim();
+    const previewBox = $('#contactPhonePreview');
+    const previewFormatted = $('#contactPhoneFormatted');
+
+    if (phone) {
+      const validation = API.validatePhoneNumber(phone);
+      if (validation.valid) {
+        previewFormatted.textContent = validation.formatted;
+        previewBox.style.display = 'block';
+        previewBox.style.borderColor = '#0066cc';
+        previewBox.style.background = '#f0f8ff';
+      } else {
+        previewBox.style.display = 'block';
+        previewBox.style.borderColor = '#cc0000';
+        previewBox.style.background = '#ffe6e6';
+        previewFormatted.textContent = '⚠ Invalid format';
+      }
+    } else {
+      previewBox.style.display = 'none';
+    }
+  });
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     clearInlineError(errorBox);
 
     try {
       setLoadingState(submitBtn, true, { textEl: '#contactSubmitText', spinnerEl: '#contactSubmitSpinner', defaultText: 'Save Contact', loadingText: 'Saving' });
+      
+      const name = nameInput.value.trim();
+      const phone = phoneInput.value.trim();
+      const email = emailInput.value.trim();
+      const relation = relationInput.value.trim();
+
+      // Validate and format phone number
+      const phoneValidation = API.validatePhoneNumber(phone);
+      if (!phoneValidation.valid) {
+        showInlineError(errorBox, phoneValidation.error);
+        setLoadingState(submitBtn, false, { textEl: '#contactSubmitText', spinnerEl: '#contactSubmitSpinner', defaultText: 'Save Contact' });
+        return;
+      }
+
       const payload = {
-        name: nameInput.value.trim(),
-        phone: phoneInput.value.trim(),
-        email: emailInput.value.trim(),
-        relation: relationInput.value.trim(),
+        name,
+        phone: phoneValidation.formatted,
+        email,
+        relation,
       };
 
       const contactId = contactIdInput.value.trim();
       if (contactId) {
         await apiCall(`/contacts/${contactId}`, 'PUT', payload);
-        showToast('Contact updated', 'success');
+        showToast(`✓ Contact updated (saved as ${phoneValidation.formatted})`, 'success');
       } else {
         await apiCall('/contacts', 'POST', payload);
-        showToast('Contact added', 'success');
+        showToast(`✓ Contact added (saved as ${phoneValidation.formatted})`, 'success');
       }
 
       closeModal();
