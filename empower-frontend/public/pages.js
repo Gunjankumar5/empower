@@ -400,20 +400,46 @@ async function initDashboardPage() {
   const sendSos = async () => {
     try {
       setLoadingState(sosBtn, true, { textEl: '#sosBtnText', spinnerEl: '#sosBtnSpinner', defaultText: 'SOS', loadingText: 'Sending' });
+      
       let location = null;
+      let locationSource = 'none';
+      
+      // Try to get current location first
       try {
-        location = await getUserLocation();
+        location = await Location.getCurrentLocation();
+        locationSource = 'current';
+        console.log('✅ Current location obtained:', location);
       } catch (error) {
-        console.warn('Geolocation unavailable, sending SOS without coordinates.');
+        console.warn('⚠️ Current location failed:', error.message);
+        
+        // Fallback: Try to get last known location from profile
+        try {
+          const profile = await apiCall('/profile');
+          if (profile?.lastKnownLocation?.lat && profile?.lastKnownLocation?.lng) {
+            location = {
+              lat: profile.lastKnownLocation.lat,
+              lng: profile.lastKnownLocation.lng,
+            };
+            locationSource = 'lastKnown';
+            console.log('✅ Using last known location:', location);
+          } else {
+            console.warn('⚠️ No lastKnownLocation in profile');
+          }
+        } catch (profileError) {
+          console.warn('Could not get last known location:', profileError.message);
+        }
       }
 
-      const response = await apiCall('/alerts/trigger', 'POST', location ? {
-        lat: location.lat,
-        lng: location.lng,
-        type: 'sos',
-      } : {
-        type: 'sos',
-      });
+      // Send SOS with or without location
+      const alertData = { type: 'sos' };
+      if (location?.lat && location?.lng) {
+        alertData.lat = location.lat;
+        alertData.lng = location.lng;
+      }
+
+      console.log('📤 Sending alert with data:', alertData, 'Location source:', locationSource);
+      const response = await apiCall('/alerts/trigger', 'POST', alertData);
+      console.log('✅ Alert response:', response);
 
       // Start real-time location streaming if alert creation was successful
       if (response && response.id && window.advancedLocation) {
@@ -424,9 +450,15 @@ async function initDashboardPage() {
         }
       }
 
-      showToast('🚨 Emergency alert sent! Notifying contacts...', 'success');
+      if (location?.lat && location?.lng) {
+        showToast(`🚨 Emergency alert sent with location (${locationSource})! Notifying contacts...`, 'success');
+      } else {
+        showToast('🚨 Emergency alert sent! (No location available - Notifying contacts...)', 'warning');
+      }
+      
       await loadDashboard();
     } catch (error) {
+      console.error('SOS Error:', error);
       showToast(error.message || 'Failed to send SOS', 'error');
     } finally {
       resetSosButton();

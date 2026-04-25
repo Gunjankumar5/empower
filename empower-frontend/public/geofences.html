@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Geofence Zones - EMPOWER SAFE">
+  <title>Geofence Zones - EMPOWER SAFE</title>
+  <link rel="stylesheet" href="/styles.css">
+  <!-- Leaflet.js (OpenStreetMap) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <style>
+    #geofenceMap {
+      width: 100%;
+      height: 500px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-top: var(--spacing-md);
+    }
+
+    .zones-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: var(--spacing-xl);
+    }
+
+    .zone-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .zone-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .zone-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .zone-indicator {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .zone-card-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .zone-type-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .zone-type-badge.safe {
+      background: rgba(76, 175, 80, 0.1);
+      color: #4CAF50;
+    }
+
+    .zone-type-badge.danger {
+      background: rgba(255, 82, 82, 0.1);
+      color: #FF5252;
+    }
+
+    .zone-info {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+
+    .zone-info strong {
+      color: var(--text);
+    }
+
+    .inside-notification {
+      background: rgba(76, 175, 80, 0.1);
+      border-left: 4px solid #4CAF50;
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #4CAF50;
+      font-weight: 600;
+    }
+
+    .outside-notification {
+      background: rgba(255, 82, 82, 0.1);
+      border-left: 4px solid #FF5252;
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #FF5252;
+      font-weight: 600;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: var(--spacing-xl);
+      padding: var(--spacing-lg);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .legend-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid var(--border);
+    }
+  </style>
+</head>
+<body data-page="geofences">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/dashboard.html" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <button class="navbar-toggle">☰</button>
+      <div class="navbar-menu">
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/contacts.html">Contacts</a>
+        <a href="/profile.html">Profile</a>
+        <a href="/map.html">Map</a>
+        <a href="/geofences.html" class="active">Geofences</a>
+        <button id="logoutBtn" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem;">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page">
+    <section class="page-content">
+      <div class="container">
+        <!-- Header -->
+        <div style="margin-bottom: var(--spacing-2xl);">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1)); border-radius: 12px; margin-bottom: var(--spacing-lg);">
+            <span style="font-size: 1.75rem;">🗺️</span>
+          </div>
+          <h1 style="margin-bottom: var(--spacing-sm);">Geofence Zones</h1>
+          <p class="text-muted">View safe and danger zones set by administrators. Get alerts when entering or exiting zones.</p>
+        </div>
+
+        <!-- Map -->
+        <div id="geofenceMap"></div>
+
+        <!-- Legend -->
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-icon" style="background: rgba(76, 175, 80, 0.2); border-color: #4CAF50;"></div>
+            <span><strong>Safe Zone</strong> - Protected area</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-icon" style="background: rgba(255, 82, 82, 0.2); border-color: #FF5252;"></div>
+            <span><strong>Danger Zone</strong> - High-risk area</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-icon" style="background: rgba(33, 150, 243, 0.2); border-color: #2196F3;"></div>
+            <span><strong>Custom Zone</strong> - User-defined area</span>
+          </div>
+        </div>
+
+        <!-- Zones List -->
+        <h2 style="margin-top: var(--spacing-2xl); margin-bottom: var(--spacing-lg);">Your Geofence Zones</h2>
+        <div class="zones-grid" id="zonesList"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" style="text-align: center; padding: var(--spacing-2xl); color: var(--text-light); display: none;">
+          <p style="font-size: 1.2rem; margin-bottom: 12px;">📍 No geofences available yet</p>
+          <p>Administrators haven't created any zones for your area.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div>
+        <h4>EMPOWER SAFE</h4>
+        <p>Your personal safety guardian</p>
+      </div>
+      <div>
+        <h4>Features</h4>
+        <p>SOS Alerts • Location Sharing • Emergency Contacts • Geofencing</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p>support@empowersafe.com • +1 (555) 123-4567</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="/app.js"></script>
+  <script src="/pages.js"></script>
+  <script>
+    let mapInstance = null;
+    let userLocation = null;
+
+    async function initGeofencesPage() {
+      if (!getToken()) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const zonesList = document.getElementById('zonesList');
+      const emptyState = document.getElementById('emptyState');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      // Initialize map
+      mapInstance = L.map('geofenceMap').setView([20, 0], 3);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(mapInstance);
+
+      // Get user's current location
+      const getUserLocation = async () => {
+        try {
+          const location = await Location.getCurrentLocation();
+          userLocation = location;
+          console.log('✅ User location:', location);
+          return location;
+        } catch (error) {
+          console.warn('⚠️ Could not get user location:', error.message);
+          return null;
+        }
+      };
+
+      // Load and display geofences
+      const loadGeofences = async () => {
+        try {
+          const geofences = await apiCall('/api/geofences');
+          console.log('📍 Loaded geofences:', geofences);
+
+          if (!geofences || geofences.length === 0) {
+            zonesList.style.display = 'none';
+            emptyState.style.display = 'block';
+            return;
+          }
+
+          zonesList.style.display = 'grid';
+          emptyState.style.display = 'none';
+
+          // Get user location for checking (optional - for inside/outside status)
+          let userLoc = null;
+          try {
+            userLoc = await getUserLocation();
+          } catch(e) {
+            console.warn('Could not get user location for status check');
+          }
+
+          // Render zones on map
+          geofences.forEach(zone => {
+            if (zone.center) {
+              // Draw circle on map
+              L.circle([zone.center.lat, zone.center.lng], {
+                radius: zone.radius,
+                color: zone.color,
+                fillColor: zone.color,
+                fillOpacity: 0.15,
+                weight: 2,
+              }).addTo(mapInstance)
+                .bindPopup(`<strong>${zone.name}</strong><br>${zone.type}<br>Radius: ${zone.radius}m`);
+
+              // Add label
+              L.marker([zone.center.lat, zone.center.lng], {
+                icon: L.divIcon({
+                  html: `<div style="background: ${zone.color}; color: white; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 0.8rem; text-align: center;">${zone.name}</div>`,
+                  iconSize: [80, 20],
+                  className: 'zone-label-marker',
+                }),
+              }).addTo(mapInstance);
+            }
+          });
+
+          // Fit map to all zones
+          if (geofences.length > 0) {
+            const bounds = L.latLngBounds(
+              geofences.map(z => [z.center.lat, z.center.lng])
+            );
+            mapInstance.fitBounds(bounds, { padding: [50, 50] });
+          }
+
+          // Render zones list
+          zonesList.innerHTML = geofences.map(zone => {
+            const isInside = userLoc && 
+              window.geofenceService?.isPointInCircle?.(
+                userLoc.lat, userLoc.lng, 
+                zone.center.lat, zone.center.lng, 
+                zone.radius
+              );
+
+            const typeEmoji = zone.type === 'safe' ? '🟢' : 
+                              zone.type === 'danger' ? '🔴' : 
+                              zone.type === 'work' ? '💼' :
+                              zone.type === 'home' ? '🏠' : '⚙️';
+
+            return `
+              <div class="zone-card">
+                <div class="zone-card-header">
+                  <div class="zone-indicator" style="background: ${zone.color};"></div>
+                  <div class="zone-card-title">${zone.name}</div>
+                </div>
+                <div class="zone-type-badge ${zone.type}">${typeEmoji} ${zone.type.toUpperCase()}</div>
+                <div class="zone-info">
+                  ${zone.description ? `<p><strong>Description:</strong> ${zone.description}</p>` : ''}
+                  <p><strong>Radius:</strong> ${zone.radius}m</p>
+                  <p><strong>Location:</strong> ${zone.center.address || `${zone.center.lat.toFixed(4)}, ${zone.center.lng.toFixed(4)}`}</p>
+                </div>
+                ${isInside ? `<div class="inside-notification">✅ You are currently INSIDE this zone</div>` : `<div class="outside-notification">📍 You are OUTSIDE this zone</div>`}
+              </div>
+            `;
+          }).join('');
+
+        } catch (error) {
+          console.error('Failed to load geofences:', error);
+          showToast('Failed to load geofences', 'error');
+          zonesList.style.display = 'none';
+          emptyState.style.display = 'block';
+        }
+      };
+
+      // Logout
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Logout?')) Auth.logout();
+      });
+
+      // Navbar toggle
+      document.querySelector('.navbar-toggle').addEventListener('click', () => {
+        const menu = document.querySelector('.navbar-menu');
+        menu.classList.toggle('active');
+      });
+
+      // Initial load
+      await loadGeofences();
+    }
+
+    document.addEventListener('DOMContentLoaded', initGeofencesPage);
+  </script>
+</body>
+</html>

@@ -203,6 +203,48 @@ class API {
     });
   }
 
+  // Geofencing
+  async getGeofences() {
+    return this.request('/api/geofences');
+  }
+
+  async checkLocation(lat, lng) {
+    return this.request('/api/geofences/check', {
+      method: 'POST',
+      body: JSON.stringify({ lat, lng }),
+    });
+  }
+
+  async getAdminGeofences() {
+    return this.request('/api/admin/geofences');
+  }
+
+  async createGeofence(geofenceData) {
+    return this.request('/api/admin/geofences', {
+      method: 'POST',
+      body: JSON.stringify(geofenceData),
+    });
+  }
+
+  async updateGeofence(geofenceId, geofenceData) {
+    return this.request(`/api/admin/geofences/${geofenceId}`, {
+      method: 'PUT',
+      body: JSON.stringify(geofenceData),
+    });
+  }
+
+  async deleteGeofence(geofenceId) {
+    return this.request(`/api/admin/geofences/${geofenceId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async toggleGeofence(geofenceId) {
+    return this.request(`/api/admin/geofences/${geofenceId}/toggle`, {
+      method: 'PATCH',
+    });
+  }
+
   // Live location tracking
   async updateAlertLocation(alertId, lat, lng, accuracy) {
     return this.request(`/api/alerts/${alertId}/location`, {
@@ -518,12 +560,18 @@ class Location {
   static async getCurrentLocation() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
-        reject(new Error('Geolocation is not supported'));
+        reject(new Error('Geolocation is not supported by this browser'));
         return;
       }
 
+      // Timeout after 10 seconds
+      const timeout = setTimeout(() => {
+        reject(new Error('Location request timed out. Please try again.'));
+      }, 10000);
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          clearTimeout(timeout);
           resolve({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
@@ -531,7 +579,23 @@ class Location {
           });
         },
         (error) => {
-          reject(error);
+          clearTimeout(timeout);
+          let message = 'Unable to get location';
+          
+          if (error.code === error.PERMISSION_DENIED) {
+            message = 'Location permission denied. Please enable location in browser settings.';
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            message = 'Location information is unavailable. Please check GPS/location services.';
+          } else if (error.code === error.TIMEOUT) {
+            message = 'Location request timed out. Please ensure GPS is enabled.';
+          }
+          
+          reject(new Error(message));
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
     });
@@ -1032,7 +1096,8 @@ const throttle = (fn, limit = 1000) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const API_BASE = 'https://empower-backend-apo9.onrender.com/api';
+const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = isDev ? 'http://localhost:5000/api' : 'https://empower-backend-apo9.onrender.com/api';
 
 function getToken() {
   return localStorage.getItem('token');

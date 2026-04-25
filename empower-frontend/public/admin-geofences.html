@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Admin Geofence Management - EMPOWER SAFE">
+  <title>Geofence Management - EMPOWER SAFE Admin</title>
+  <link rel="stylesheet" href="/styles.css">
+  <!-- Leaflet.js (OpenStreetMap) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <style>
+    .geofence-container {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    #geofenceMap {
+      width: 100%;
+      height: 600px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .geofence-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .geofence-form {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-group {
+      display: grid;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: var(--input);
+      color: var(--text);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .geofence-list {
+      margin-top: 20px;
+    }
+
+    .geofence-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .geofence-item:hover {
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+    }
+
+    .geofence-item.active {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .geofence-item-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .geofence-item-type {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .geofence-item-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .geofence-item-actions button {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: var(--border);
+      color: var(--text);
+      transition: all 0.2s ease;
+    }
+
+    .geofence-item-actions button:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .color-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .color-option {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+
+    .color-option.selected {
+      border-color: var(--text);
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-group button {
+      flex: 1;
+    }
+
+    .map-instructions {
+      background: rgba(99, 102, 241, 0.05);
+      border-left: 4px solid var(--primary);
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    @media (max-width: 1024px) {
+      .geofence-container {
+        grid-template-columns: 1fr;
+      }
+
+      #geofenceMap {
+        height: 400px;
+      }
+
+      .geofence-panel {
+        max-height: 400px;
+      }
+    }
+  </style>
+</head>
+<body data-page="admin-geofences">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/dashboard.html" class="navbar-brand">🛡️ EMPOWER SAFE</a>
+      <button class="navbar-toggle">☰</button>
+      <div class="navbar-menu">
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/admin-geofences.html" class="active">Geofences</a>
+        <a href="/profile.html">Profile</a>
+        <button id="logoutBtn" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem;">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page">
+    <section class="page-content">
+      <div class="container">
+        <!-- Header -->
+        <div style="margin-bottom: var(--spacing-2xl);">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1)); border-radius: 12px; margin-bottom: var(--spacing-lg);">
+            <span style="font-size: 1.75rem;">🗺️</span>
+          </div>
+          <h1 style="margin-bottom: var(--spacing-sm);">Geofence Management</h1>
+          <p class="text-muted">Create and manage safe and danger zones for users</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="geofence-container">
+          <!-- Map -->
+          <div>
+            <div id="geofenceMap"></div>
+            <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-light);">
+              💡 Click on the map to set zone center. Drag the circle to adjust radius.
+            </p>
+          </div>
+
+          <!-- Control Panel -->
+          <div class="geofence-panel">
+            <div class="map-instructions">
+              <strong>📍 How to Create:</strong>
+              <ol style="margin: 8px 0 0 0; padding-left: 20px;">
+                <li>Fill in zone details below</li>
+                <li>Click map to set center</li>
+                <li>Adjust radius using the circle</li>
+                <li>Click Create Zone</li>
+              </ol>
+            </div>
+
+            <form class="geofence-form" id="geofenceForm">
+              <div class="form-group">
+                <label for="zoneName">Zone Name *</label>
+                <input type="text" id="zoneName" placeholder="e.g., Home, Office" required>
+              </div>
+
+              <div class="form-group">
+                <label for="zoneDescription">Description</label>
+                <input type="text" id="zoneDescription" placeholder="Optional description">
+              </div>
+
+              <div class="form-group">
+                <label for="zoneType">Zone Type *</label>
+                <select id="zoneType" required>
+                  <option value="safe">🟢 Safe Zone</option>
+                  <option value="danger">🔴 Danger Zone</option>
+                  <option value="work">💼 Work</option>
+                  <option value="home">🏠 Home</option>
+                  <option value="custom">⚙️ Custom</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="zoneRadius">Radius (meters) *</label>
+                <input type="number" id="zoneRadius" min="100" max="10000" value="500" placeholder="500" required>
+              </div>
+
+              <div class="form-group">
+                <label>Zone Color</label>
+                <div class="color-picker">
+                  <div class="color-option selected" style="background: #4CAF50;" data-color="#4CAF50" title="Green"></div>
+                  <div class="color-option" style="background: #FF5252;" data-color="#FF5252" title="Red"></div>
+                  <div class="color-option" style="background: #2196F3;" data-color="#2196F3" title="Blue"></div>
+                  <div class="color-option" style="background: #FFC107;" data-color="#FFC107" title="Orange"></div>
+                  <div class="color-option" style="background: #9C27B0;" data-color="#9C27B0" title="Purple"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="enableNotifications" checked>
+                  Enable Notifications
+                </label>
+              </div>
+
+              <div class="btn-group">
+                <button type="submit" class="btn btn-primary">Create Zone</button>
+                <button type="button" class="btn btn-secondary" id="clearForm">Clear</button>
+              </div>
+            </form>
+
+            <!-- Geofence List -->
+            <div class="geofence-list">
+              <h3 style="margin-bottom: 12px;">Active Zones</h3>
+              <div id="geofencesList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div>
+        <h4>EMPOWER SAFE</h4>
+        <p>Your personal safety guardian</p>
+      </div>
+      <div>
+        <h4>Features</h4>
+        <p>SOS Alerts • Location Sharing • Emergency Contacts • Geofencing</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p>support@empowersafe.com • +1 (555) 123-4567</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="/app.js"></script>
+  <script>
+    let mapInstance = null;
+    let selectedColor = '#4CAF50';
+    let mapCircle = null;
+    let centerMarker = null;
+    let allGeofences = [];
+    let selectedGeofenceId = null;
+
+    async function initAdminGeofencePage() {
+      if (!getToken()) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const form = document.getElementById('geofenceForm');
+      const clearBtn = document.getElementById('clearForm');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const geofencesList = document.getElementById('geofencesList');
+      const zoneName = document.getElementById('zoneName');
+      const zoneDescription = document.getElementById('zoneDescription');
+      const zoneType = document.getElementById('zoneType');
+      const zoneRadius = document.getElementById('zoneRadius');
+      const enableNotifications = document.getElementById('enableNotifications');
+
+      // Initialize map
+      mapInstance = L.map('geofenceMap').setView([20, 0], 3);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(mapInstance);
+
+      // Color picker
+      document.querySelectorAll('.color-option').forEach(option => {
+        option.addEventListener('click', () => {
+          document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+          option.classList.add('selected');
+          selectedColor = option.dataset.color;
+        });
+      });
+
+      // Map click to set zone center
+      mapInstance.on('click', (e) => {
+        const { lat, lng } = e.latlng;
+        
+        // Remove previous marker
+        if (centerMarker) mapInstance.removeLayer(centerMarker);
+        if (mapCircle) mapInstance.removeLayer(mapCircle);
+
+        // Add new marker
+        centerMarker = L.marker([lat, lng], {
+          draggable: true,
+        }).addTo(mapInstance)
+          .bindPopup(`<strong>Zone Center</strong><br>Lat: ${lat.toFixed(4)}<br>Lng: ${lng.toFixed(4)}`);
+
+        // Add circle
+        const radius = parseInt(zoneRadius.value) || 500;
+        mapCircle = L.circle([lat, lng], {
+          radius,
+          color: selectedColor,
+          fillColor: selectedColor,
+          fillOpacity: 0.2,
+          weight: 2,
+          draggable: true,
+        }).addTo(mapInstance);
+
+        // Update radius on circle drag
+        mapCircle.on('drag', () => {
+          const center = mapCircle.getLatLng();
+          centerMarker.setLatLng(center);
+        });
+
+        // Update displayed coordinates
+        zoneName.focus();
+      });
+
+      // Load geofences
+      const loadGeofences = async () => {
+        try {
+          const response = await apiCall('/api/admin/geofences', 'GET');
+          allGeofences = response || [];
+          renderGeofencesList();
+          renderGeofencesOnMap();
+        } catch (error) {
+          showToast('Failed to load geofences', 'error');
+        }
+      };
+
+      // Render geofences list
+      const renderGeofencesList = () => {
+        if (allGeofences.length === 0) {
+          geofencesList.innerHTML = '<p style="color: var(--text-light); font-size: 0.9rem;">No geofences created yet</p>';
+          return;
+        }
+
+        geofencesList.innerHTML = allGeofences.map(gf => `
+          <div class="geofence-item ${selectedGeofenceId === gf._id ? 'active' : ''}" data-id="${gf._id}">
+            <div class="geofence-item-name">${gf.name}</div>
+            <div class="geofence-item-type">${gf.type.toUpperCase()}</div>
+            <p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-light);">${gf.description || 'No description'}</p>
+            <div class="geofence-item-actions">
+              <button type="button" class="edit-btn" data-id="${gf._id}">Edit</button>
+              <button type="button" class="delete-btn" data-id="${gf._id}">Delete</button>
+            </div>
+          </div>
+        `).join('');
+
+        // Add event listeners
+        document.querySelectorAll('.geofence-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
+              selectedGeofenceId = item.dataset.id;
+              renderGeofencesList();
+            }
+          });
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            editGeofence(btn.dataset.id);
+          });
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteGeofence(btn.dataset.id);
+          });
+        });
+      };
+
+      // Render geofences on map
+      const renderGeofencesOnMap = () => {
+        allGeofences.forEach(gf => {
+          if (gf.shape === 'circle' && gf.center) {
+            L.circle([gf.center.lat, gf.center.lng], {
+              radius: gf.radius,
+              color: gf.color,
+              fillColor: gf.color,
+              fillOpacity: 0.15,
+              weight: 2,
+              opacity: 0.8,
+            }).addTo(mapInstance)
+              .bindPopup(`<strong>${gf.name}</strong><br>${gf.type}<br>Radius: ${gf.radius}m`);
+          }
+        });
+      };
+
+      // Create/Update geofence
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!centerMarker || !mapCircle) {
+          showToast('Please click on the map to set zone center', 'warning');
+          return;
+        }
+
+        const center = mapCircle.getLatLng();
+        const data = {
+          name: zoneName.value.trim(),
+          description: zoneDescription.value.trim(),
+          type: zoneType.value,
+          shape: 'circle',
+          center: { lat: center.lat, lng: center.lng },
+          radius: parseInt(zoneRadius.value),
+          color: selectedColor,
+          enableNotifications: enableNotifications.checked,
+          notifyOnEntry: true,
+          notifyOnExit: false,
+          isPublic: true,
+        };
+
+        try {
+          if (selectedGeofenceId) {
+            await apiCall(`/api/admin/geofences/${selectedGeofenceId}`, 'PUT', data);
+            showToast('Zone updated successfully', 'success');
+            selectedGeofenceId = null;
+          } else {
+            await apiCall('/api/admin/geofences', 'POST', data);
+            showToast('Zone created successfully', 'success');
+          }
+
+          form.reset();
+          zoneRadius.value = 500;
+          if (centerMarker) mapInstance.removeLayer(centerMarker);
+          if (mapCircle) mapInstance.removeLayer(mapCircle);
+          centerMarker = null;
+          mapCircle = null;
+
+          await loadGeofences();
+        } catch (error) {
+          showToast(error.message || 'Failed to save zone', 'error');
+        }
+      });
+
+      // Clear form
+      clearBtn.addEventListener('click', () => {
+        form.reset();
+        zoneRadius.value = 500;
+        selectedGeofenceId = null;
+        if (centerMarker) mapInstance.removeLayer(centerMarker);
+        if (mapCircle) mapInstance.removeLayer(mapCircle);
+        centerMarker = null;
+        mapCircle = null;
+      });
+
+      // Edit geofence
+      const editGeofence = (id) => {
+        const gf = allGeofences.find(g => g._id === id);
+        if (!gf) return;
+
+        zoneName.value = gf.name;
+        zoneDescription.value = gf.description || '';
+        zoneType.value = gf.type;
+        zoneRadius.value = gf.radius;
+        selectedColor = gf.color;
+
+        // Update color picker
+        document.querySelectorAll('.color-option').forEach(o => {
+          o.classList.toggle('selected', o.dataset.color === selectedColor);
+        });
+
+        // Show on map
+        if (gf.center) {
+          if (centerMarker) mapInstance.removeLayer(centerMarker);
+          if (mapCircle) mapInstance.removeLayer(mapCircle);
+
+          centerMarker = L.marker([gf.center.lat, gf.center.lng]).addTo(mapInstance);
+          mapCircle = L.circle([gf.center.lat, gf.center.lng], {
+            radius: gf.radius,
+            color: selectedColor,
+            fillColor: selectedColor,
+            fillOpacity: 0.2,
+          }).addTo(mapInstance);
+
+          mapInstance.setView([gf.center.lat, gf.center.lng], 13);
+        }
+
+        zoneName.focus();
+      };
+
+      // Delete geofence
+      const deleteGeofence = async (id) => {
+        if (!confirm('Delete this geofence?')) return;
+
+        try {
+          await apiCall(`/api/admin/geofences/${id}`, 'DELETE');
+          showToast('Zone deleted successfully', 'success');
+          await loadGeofences();
+        } catch (error) {
+          showToast('Failed to delete zone', 'error');
+        }
+      };
+
+      // Logout
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Logout?')) Auth.logout();
+      });
+
+      // Initial load
+      await loadGeofences();
+    }
+
+    document.addEventListener('DOMContentLoaded', initAdminGeofencePage);
+  </script>
+</body>
+</html>

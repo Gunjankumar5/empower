@@ -364,8 +364,18 @@
             mapInstance.setView([location.lat, location.lng], 14);
             showToast('📍 Location updated', 'success');
           } catch (error) {
-            console.warn('Location access denied:', error);
-            showToast('Enable location services to view your position', 'warning');
+            console.warn('Location access error:', error.message);
+            
+            // Show specific error message
+            if (error.message.includes('permission')) {
+              showToast('⚠️ Location permission denied. Click "Center on My Location" to try again.', 'warning');
+            } else if (error.message.includes('timeout')) {
+              showToast('⏱️ Location request timed out. Make sure GPS is enabled and try again.', 'warning');
+            } else if (error.message.includes('POSITION_UNAVAILABLE')) {
+              showToast('📍 GPS unavailable. Check your device location services.', 'warning');
+            } else {
+              showToast('Enable location services to view your position on the map', 'warning');
+            }
           }
         };
 

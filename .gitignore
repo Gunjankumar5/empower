@@ -44,6 +44,15 @@ logs/
 *.log
 lerna-debug.log*
 
+# Temporary files & test scripts
+Screenshots/
+tests/
+test-*.ps1
+*_REPORT.md
+*_DIAGNOSTIC.md
+QUICK_SMS_START.txt
+STRUCTURE.md
+
 # Runtime data
 pids/
 *.pid

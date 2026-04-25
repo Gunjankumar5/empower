@@ -46,6 +46,9 @@ const htmlFiles = {
   "/contacts.html": "contacts.html",
   "/profile.html": "profile.html",
   "/history.html": "history.html",
+  "/admin-geofences.html": "admin-geofences.html",
+  "/geofences.html": "geofences.html",
+  "/map.html": "map.html",
 };
 
 Object.entries(htmlFiles).forEach(([route, file]) => {
@@ -60,6 +63,11 @@ app.use('/api/contacts', require('./routes/contacts'));
 app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/profile', require('./routes/profile'));
 app.use('/api/nfc', require('./routes/nfc'));
+
+// Geofence routes
+const { adminRouter, userRouter } = require('./routes/geofences');
+app.use('/api/admin/geofences', adminRouter);
+app.use('/api/geofences', userRouter);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
