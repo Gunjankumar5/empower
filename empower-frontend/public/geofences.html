@@ -250,7 +250,7 @@
       // Load and display geofences
       const loadGeofences = async () => {
         try {
-          const geofences = await apiCall('/api/geofences');
+          const geofences = await apiCall('/geofences');
           console.log('📍 Loaded geofences:', geofences);
 
           if (!geofences || geofences.length === 0) {

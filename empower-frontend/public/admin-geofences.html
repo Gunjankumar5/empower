@@ -395,7 +395,7 @@
       // Load geofences
       const loadGeofences = async () => {
         try {
-          const response = await apiCall('/api/admin/geofences', 'GET');
+          const response = await apiCall('/admin/geofences', 'GET');
           allGeofences = response || [];
           renderGeofencesList();
           renderGeofencesOnMap();
@@ -491,11 +491,11 @@
 
         try {
           if (selectedGeofenceId) {
-            await apiCall(`/api/admin/geofences/${selectedGeofenceId}`, 'PUT', data);
+            await apiCall(`/admin/geofences/${selectedGeofenceId}`, 'PUT', data);
             showToast('Zone updated successfully', 'success');
             selectedGeofenceId = null;
           } else {
-            await apiCall('/api/admin/geofences', 'POST', data);
+            await apiCall('/admin/geofences', 'POST', data);
             showToast('Zone created successfully', 'success');
           }
 
@@ -563,7 +563,7 @@
         if (!confirm('Delete this geofence?')) return;
 
         try {
-          await apiCall(`/api/admin/geofences/${id}`, 'DELETE');
+          await apiCall(`/admin/geofences/${id}`, 'DELETE');
           showToast('Zone deleted successfully', 'success');
           await loadGeofences();
         } catch (error) {
