@@ -59,14 +59,14 @@ class API {
 
   // Auth endpoints
   async register(email, phone, password, name, emergencyContacts = []) {
-    return this.request('/api/auth/register', {
+    return this.request('/auth/register', {
       method: 'POST',
       body: JSON.stringify({ email, phone, password, name, emergencyContacts }),
     });
   }
 
   async login(email, password) {
-    const data = await this.request('/api/auth/login', {
+    const data = await this.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
@@ -116,18 +116,18 @@ class API {
 
   // Emergency/Alert endpoints
   async createSOS(lat, lng, type = 'sos') {
-    return this.request('/api/alerts/trigger', {
+    return this.request('/alerts/trigger', {
       method: 'POST',
       body: JSON.stringify({ lat, lng, type }),
     });
   }
 
   async getAlerts() {
-    return this.request('/api/alerts/history');
+    return this.request('/alerts/history');
   }
 
   async resolveAlert(alertId) {
-    return this.request(`/api/alerts/${alertId}/resolve`, {
+    return this.request(`/alerts/${alertId}/resolve`, {
       method: 'PUT',
     });
   }
@@ -137,7 +137,7 @@ class API {
   }
 
   async getIncident(id) {
-    return this.request(`/api/alerts/${id}`);
+    return this.request(`/alerts/${id}`);
   }
 
   // NFC endpoints
@@ -187,67 +187,67 @@ class API {
 
   // Safe zones
   async addSafeZone(zoneData) {
-    return this.request('/api/profile/safe-zones', {
+    return this.request('/profile/safe-zones', {
       method: 'POST',
       body: JSON.stringify(zoneData),
     });
   }
 
   async getSafeZones() {
-    return this.request('/api/profile/safe-zones');
+    return this.request('/profile/safe-zones');
   }
 
   async deleteSafeZone(zoneId) {
-    return this.request(`/api/profile/safe-zones/${zoneId}`, {
+    return this.request(`/profile/safe-zones/${zoneId}`, {
       method: 'DELETE',
     });
   }
 
   // Geofencing
   async getGeofences() {
-    return this.request('/api/geofences');
+    return this.request('/geofences');
   }
 
   async checkLocation(lat, lng) {
-    return this.request('/api/geofences/check', {
+    return this.request('/geofences/check', {
       method: 'POST',
       body: JSON.stringify({ lat, lng }),
     });
   }
 
   async getAdminGeofences() {
-    return this.request('/api/admin/geofences');
+    return this.request('/admin/geofences');
   }
 
   async createGeofence(geofenceData) {
-    return this.request('/api/admin/geofences', {
+    return this.request('/admin/geofences', {
       method: 'POST',
       body: JSON.stringify(geofenceData),
     });
   }
 
   async updateGeofence(geofenceId, geofenceData) {
-    return this.request(`/api/admin/geofences/${geofenceId}`, {
+    return this.request(`/admin/geofences/${geofenceId}`, {
       method: 'PUT',
       body: JSON.stringify(geofenceData),
     });
   }
 
   async deleteGeofence(geofenceId) {
-    return this.request(`/api/admin/geofences/${geofenceId}`, {
+    return this.request(`/admin/geofences/${geofenceId}`, {
       method: 'DELETE',
     });
   }
 
   async toggleGeofence(geofenceId) {
-    return this.request(`/api/admin/geofences/${geofenceId}/toggle`, {
+    return this.request(`/admin/geofences/${geofenceId}/toggle`, {
       method: 'PATCH',
     });
   }
 
   // Live location tracking
   async updateAlertLocation(alertId, lat, lng, accuracy) {
-    return this.request(`/api/alerts/${alertId}/location`, {
+    return this.request(`/alerts/${alertId}/location`, {
       method: 'POST',
       body: JSON.stringify({ lat, lng, accuracy }),
     });

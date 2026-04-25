@@ -76,7 +76,7 @@ class LocationStreamer {
       const token = localStorage.getItem('token');
       if (!token || !this.alertId) return;
 
-      await fetch(`/api/alerts/${this.alertId}/location`, {
+      await fetch(`${API_BASE}/alerts/${this.alertId}/location`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
