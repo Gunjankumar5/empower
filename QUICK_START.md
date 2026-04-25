@@ -84,11 +84,16 @@ Password: TestPassword123!
 ## 📞 Twilio SMS
 
 Emergency contacts configured with:
-- **Twilio Account:** AC07b88f5485e11a0a5bd803168681f024
-- **From Number:** +12295448152
+- **Twilio Account:** Configured in .env (see .env.example)
+- **From Number:** Configured in .env (see .env.example)
 - **Status:** Configured and Ready
 
 SMS will be sent to emergency contacts when SOS is triggered!
+
+To setup Twilio:
+1. Create a Twilio account at https://www.twilio.com
+2. Copy your credentials to .env file
+3. Verify phone numbers in Twilio console
 
 ---
 
