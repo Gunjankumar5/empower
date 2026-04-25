@@ -1032,7 +1032,7 @@ const throttle = (fn, limit = 1000) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const API_BASE = window.API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE = 'https://empower-backend-apo9.onrender.com/api';
 
 function getToken() {
   return localStorage.getItem('token');
