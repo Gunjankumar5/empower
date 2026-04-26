@@ -10,23 +10,43 @@ const sendError = (res, error, status = 400) => res.status(status).json({ succes
 
 router.post('/scan', async (req, res) => {
   try {
-    const tagId = String(req.body.tagId || '').trim();
+    const { tagId, lat, lng } = req.body;
+
     if (!tagId) {
       return sendError(res, 'tagId is required', 400);
     }
 
     const user = await User.findOne({ nfcTagId: tagId });
     if (!user) {
-      return sendError(res, 'No user is linked to this NFC tag', 404);
+      return sendError(res, 'NFC tag not registered to any user', 404);
     }
 
-    const location = user.lastKnownLocation || {};
-    const resolvedLat = location.lat ?? null;
-    const resolvedLng = location.lng ?? null;
+    // Use provided location or fall back to user's last known location
+    let resolvedLat = lat;
+    let resolvedLng = lng;
 
-    const alert = await createAndNotifyAlert({ user, lat: resolvedLat, lng: resolvedLng, type: 'nfc' });
+    if (resolvedLat == null || resolvedLng == null) {
+      const location = user.lastKnownLocation || {};
+      resolvedLat = location.lat ?? null;
+      resolvedLng = location.lng ?? null;
+    }
+
+    // Create and send alert
+    const alert = await createAndNotifyAlert({
+      user,
+      lat: resolvedLat,
+      lng: resolvedLng,
+      type: 'nfc',
+    });
+
+    // Count notified contacts (those with status: sent or skipped)
+    const contactsNotified = (alert.notifiedContacts || []).filter(
+      (c) => c.status === 'sent' || c.status === 'skipped'
+    ).length;
+
     return sendSuccess(res, {
       userId: user._id,
+      contactsNotified,
       alert,
     }, 201);
   } catch (error) {

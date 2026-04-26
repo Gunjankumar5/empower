@@ -927,7 +927,7 @@ async function initHistoryPage() {
     modal.innerHTML = `
       <div class="modal-content" style="max-width: 800px;">
         <div class="modal-header">
-          <h3 style="margin: 0;">📍 ${escapeHtml(alert.type || 'Alert')} Location</h3>
+          <h3 style="margin: 0;">📍 ${escapeHtml(alert.type || 'Alert')} Location ${(alert.locationTrail && alert.locationTrail.length > 0) ? '(with trail)' : ''}</h3>
           <button type="button" class="modal-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">×</button>
         </div>
         <div id="alertMapDiv" style="width: 100%; height: 500px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: var(--spacing-lg);"></div>
@@ -952,6 +952,12 @@ async function initHistoryPage() {
               <p style="margin: var(--spacing-sm) 0 0 0; color: var(--text-light);">${alert.resolved ? '✅ Resolved' : '🔴 Active'}</p>
             </div>
           </div>
+          ${(alert.locationTrail && alert.locationTrail.length > 0) ? `
+            <div style="border-top: 1px solid var(--border); padding-top: var(--spacing-md);">
+              <strong style="color: var(--primary);">📈 Tracking Data</strong>
+              <p style="margin: var(--spacing-sm) 0 0 0; color: var(--text-light);">Trail points: <strong>${alert.locationTrail.length}</strong></p>
+            </div>
+          ` : ''}
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" style="width: 100%;">Close Map</button>
@@ -974,16 +980,56 @@ async function initHistoryPage() {
         maxZoom: 19
       }).addTo(mapInstance);
 
-      L.circleMarker([location.lat, location.lng], {
-        radius: 12,
-        fillColor: '#ef4444',
-        color: 'white',
-        weight: 2,
-        opacity: 1,
-        fillOpacity: 0.8
-      }).addTo(mapInstance)
-        .bindPopup(`<strong>${escapeHtml(alert.type)}</strong><br>${escapeHtml(location.address || 'Location')}`)
-        .openPopup();
+      // Draw location trail polyline if available
+      if (alert.locationTrail && alert.locationTrail.length > 1) {
+        const trailPoints = alert.locationTrail.map(point => [point.lat, point.lng]);
+        L.polyline(trailPoints, {
+          color: '#FF3E7F',
+          weight: 3,
+          opacity: 0.7
+        }).addTo(mapInstance);
+
+        // Add start marker (first location)
+        const startPoint = alert.locationTrail[0];
+        L.circleMarker([startPoint.lat, startPoint.lng], {
+          radius: 8,
+          fillColor: '#22C55E',
+          color: 'white',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).addTo(mapInstance)
+          .bindPopup('<strong>🟢 Start Point</strong>')
+          .openPopup();
+
+        // Add end marker (last location = current location)
+        const endPoint = alert.locationTrail[alert.locationTrail.length - 1];
+        L.circleMarker([endPoint.lat, endPoint.lng], {
+          radius: 10,
+          fillColor: '#EF4444',
+          color: 'white',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).addTo(mapInstance)
+          .bindPopup(`<strong>🔴 Current Location</strong>`);
+
+        // Fit map to trail bounds
+        const bounds = L.latLngBounds(trailPoints);
+        mapInstance.fitBounds(bounds, { padding: [50, 50] });
+      } else {
+        // No trail, just show single location marker
+        L.circleMarker([location.lat, location.lng], {
+          radius: 12,
+          fillColor: '#ef4444',
+          color: 'white',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).addTo(mapInstance)
+          .bindPopup(`<strong>${escapeHtml(alert.type)}</strong><br>${escapeHtml(location.address || 'Location')}`)
+          .openPopup();
+      }
     }, 100);
 
     const closeBtn = modal.querySelector('.modal-close');

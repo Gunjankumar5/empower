@@ -49,6 +49,7 @@ const htmlFiles = {
   "/admin-geofences.html": "admin-geofences.html",
   "/geofences.html": "geofences.html",
   "/map.html": "map.html",
+  "/nfc.html": "nfc.html",
 };
 
 Object.entries(htmlFiles).forEach(([route, file]) => {

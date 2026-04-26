@@ -43,6 +43,7 @@ router.get('/history', auth, async (req, res) => {
         notifiedContacts: alert.notifiedContacts,
         resolved: alert.resolved,
         resolvedAt: alert.resolvedAt,
+        locationTrail: alert.locationTrail || [],
       }))
     );
   } catch (error) {
