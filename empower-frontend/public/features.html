@@ -6,8 +6,161 @@
   <meta name="description" content="NFC Features - EMPOWER SAFE">
   <title>Features - EMPOWER SAFE</title>
   <link rel="stylesheet" href="/styles.css">
+  <style>
+    .nfc-page { max-width: 480px; margin: 0 auto; padding: 24px 16px 48px; }
+    .nfc-header { text-align: center; margin-bottom: 28px; }
+    .nfc-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    .nfc-header p  { font-size: 14px; color: var(--text-muted, #6B6880); }
+
+    .nfc-tabs {
+      display: flex;
+      background: var(--card-bg, #13131F);
+      border: 1px solid var(--border, #1E1E2E);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 20px;
+      gap: 4px;
+    }
+    .nfc-tab {
+      flex: 1; padding: 9px; border-radius: 8px; border: none;
+      background: transparent; color: var(--text-muted, #6B6880);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .nfc-tab.active { background: linear-gradient(135deg,#FF3E7F,#7C3AED); color: white; }
+
+    .nfc-main-card {
+      background: var(--card-bg, #13131F);
+      border: 1px solid var(--border, #1E1E2E);
+      border-radius: 20px; padding: 32px 24px;
+      text-align: center; margin-bottom: 16px;
+      transition: border-color 0.3s;
+    }
+    .nfc-main-card.connected { border-color: #22C55E; }
+    .nfc-main-card.scanning  { border-color: #FF3E7F; }
+
+    .card-icon  { font-size: 56px; margin-bottom: 14px; display: block; }
+    .card-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .card-desc  { font-size: 14px; color: var(--text-muted,#6B6880); line-height: 1.6; margin-bottom: 20px; }
+
+    .tag-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 12px; color: #22C55E; font-family: monospace; margin-bottom: 16px;
+    }
+    .tag-badge-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #22C55E;
+      animation: glow 1.5s infinite;
+    }
+    @keyframes glow {
+      0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+      50%      { box-shadow: 0 0 0 5px rgba(34,197,94,0); }
+    }
+
+    .scan-rings {
+      position: relative; width: 120px; height: 120px;
+      margin: 0 auto 8px;
+    }
+    .scan-rings .ring {
+      position: absolute; top:50%; left:50%;
+      transform: translate(-50%,-50%);
+      border-radius: 50%; border: 2px solid #FF3E7F;
+      animation: ripple 2s ease-out infinite;
+    }
+    .scan-rings .r1 { width:40px;  height:40px;  animation-delay:0s; }
+    .scan-rings .r2 { width:70px;  height:70px;  animation-delay:0.5s; }
+    .scan-rings .r3 { width:100px; height:100px; animation-delay:1s; }
+    .scan-rings .cdot {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      width:14px; height:14px; border-radius:50%; background:#FF3E7F;
+    }
+    @keyframes ripple {
+      0%   { opacity:1; transform:translate(-50%,-50%) scale(0.8); }
+      100% { opacity:0; transform:translate(-50%,-50%) scale(1.2); }
+    }
+    .scan-label { font-size:12px; color:#FF3E7F; animation:blink 1.5s infinite; margin-top:4px; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .nfc-status {
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 13px; margin-bottom: 14px;
+      min-height: 0; display: none; line-height: 1.5;
+    }
+    .nfc-status.show    { display: block; }
+    .nfc-status.success { background:rgba(34,197,94,0.1);  color:#22C55E; border:1px solid rgba(34,197,94,0.3); }
+    .nfc-status.error   { background:rgba(239,68,68,0.1);  color:#EF4444; border:1px solid rgba(239,68,68,0.3); }
+    .nfc-status.info    { background:rgba(124,58,237,0.1); color:#A78BFA; border:1px solid rgba(124,58,237,0.3); }
+    .nfc-status.warning { background:rgba(245,158,11,0.1); color:#F59E0B; border:1px solid rgba(245,158,11,0.3); }
+
+    .btn-nfc-primary {
+      width:100%; padding:14px; border-radius:12px; border:none;
+      background:linear-gradient(135deg,#FF3E7F,#7C3AED);
+      color:white; font-size:15px; font-weight:600;
+      cursor:pointer; font-family:inherit; margin-bottom:10px;
+      transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .btn-nfc-primary:hover:not(:disabled) { opacity:0.9; transform:translateY(-1px); }
+    .btn-nfc-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+    .btn-nfc-secondary {
+      width:100%; padding:11px; border-radius:12px;
+      border:1px solid var(--border,#1E1E2E);
+      background:transparent; color:var(--text-muted,#6B6880);
+      font-size:13px; cursor:pointer; font-family:inherit;
+      margin-bottom:8px; transition:all 0.15s;
+    }
+    .btn-nfc-secondary:hover { border-color:#A78BFA; color:#A78BFA; }
+
+    .btn-nfc-danger {
+      width:100%; padding:11px; border-radius:12px;
+      border:1px solid rgba(239,68,68,0.4); background:transparent;
+      color:#EF4444; font-size:13px; cursor:pointer; font-family:inherit; transition:all 0.15s;
+    }
+    .btn-nfc-danger:hover { background:rgba(239,68,68,0.1); }
+
+    .prog-steps { display:flex; justify-content:center; align-items:center; gap:6px; margin-bottom:20px; }
+    .prog-step  { display:flex; align-items:center; }
+    .prog-dot {
+      width:26px; height:26px; border-radius:50%;
+      background:var(--border,#1E1E2E); color:var(--text-muted,#6B6880);
+      font-size:12px; font-weight:600; display:flex;
+      align-items:center; justify-content:center; transition:all 0.3s;
+    }
+    .prog-step.active .prog-dot { background:linear-gradient(135deg,#FF3E7F,#7C3AED); color:white; }
+    .prog-step.done   .prog-dot { background:#22C55E; color:white; }
+    .prog-line { width:24px; height:2px; background:var(--border,#1E1E2E); transition:background 0.3s; }
+    .prog-line.done { background:#22C55E; }
+
+    .info-card {
+      background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.2);
+      border-radius:12px; padding:14px 16px; font-size:13px;
+      color:#A78BFA; line-height:1.6; margin-bottom:16px;
+    }
+    .info-card strong { color:#C4B5FD; }
+
+    .how-card {
+      background:var(--card-bg,#13131F); border:1px solid var(--border,#1E1E2E);
+      border-radius:16px; padding:20px; margin-bottom:16px;
+    }
+    .how-card h3 { font-size:15px; font-weight:600; margin-bottom:16px; }
+    .how-step {
+      display:flex; align-items:flex-start; gap:12px;
+      margin-bottom:12px; font-size:13px;
+      color:var(--text-muted,#6B6880); line-height:1.6;
+    }
+    .how-step:last-child { margin-bottom:0; }
+    .how-num {
+      width:26px; height:26px; border-radius:50%;
+      background:linear-gradient(135deg,#FF3E7F,#7C3AED);
+      color:white; font-size:12px; font-weight:700;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+  </style>
 </head>
 <body data-page="features">
+
   <nav class="navbar">
     <div class="navbar-content">
       <a href="/" class="navbar-brand">🛡️ EMPOWER SAFE</a>
@@ -16,7 +169,7 @@
         <li><a href="/contacts.html">Contacts</a></li>
         <li><a href="/profile.html">Profile</a></li>
         <li><a href="/map.html">Map</a></li>
-        <li><a href="/features.html">Features</a></li>
+        <li><a href="/features.html" class="active">Features</a></li>
         <li><a href="/history.html">History</a></li>
         <li><button id="logoutBtn" class="btn btn-sm btn-danger">Logout</button></li>
       </ul>
@@ -26,71 +179,442 @@
 
   <main class="page">
     <section class="page-content">
-      <div class="container" style="padding-top: 32px; padding-bottom: 32px;">
-        
-        <!-- NFC CONNECT SECTION -->
-        <div class="nfc-section">
-          
-          <!-- STATUS CARD -->
-          <div class="nfc-card" id="nfcCard">
-            <div class="nfc-icon" id="nfcIcon">📵</div>
-            <h2 id="nfcTitle">Connect Your NFC Tag</h2>
-            <p id="nfcDesc">Link your physical NFC tag to your account so tapping it triggers SOS automatically.</p>
-            
-            <!-- Current tag status -->
-            <div class="tag-status" id="tagStatus" style="display:none">
-              <span class="tag-dot"></span>
-              <span id="tagIdDisplay"></span>
-            </div>
-            
-            <!-- Buttons -->
-            <button class="btn-scan" id="scanBtn" onclick="startNFCScan()">
-              📡 Scan NFC Tag to Connect
-            </button>
-            <button class="btn-remove" id="removeBtn" onclick="removeNFCTag()" style="display:none">
-              🗑️ Remove Linked Tag
-            </button>
-            
-            <!-- Scanning animation -->
-            <div class="scan-animation" id="scanAnim" style="display:none">
-              <div class="ring ring1"></div>
-              <div class="ring ring2"></div>
-              <div class="ring ring3"></div>
-              <span>Hold NFC tag to back of phone...</span>
-            </div>
+      <div class="container">
+        <div class="nfc-page">
 
-            <div id="nfcMessage"></div>
+          <div class="nfc-header">
+            <h1>🏷️ NFC Tag Setup</h1>
+            <p>Program your NFC sticker directly from this page</p>
           </div>
 
-          <!-- HOW IT WORKS -->
-          <div class="how-it-works">
-            <h3>How it works</h3>
-            <div class="step-item">
-              <span class="step-num">1</span>
-              <span>Click "Scan NFC Tag" button above</span>
+          <!-- TABS -->
+          <div class="nfc-tabs">
+            <button class="nfc-tab active" id="tab-setup" onclick="switchTab('setup')">⚡ Setup</button>
+            <button class="nfc-tab" id="tab-scan"  onclick="switchTab('scan')">📡 Link Tag</button>
+            <button class="nfc-tab" id="tab-guide" onclick="switchTab('guide')">📖 Guide</button>
+          </div>
+
+          <!-- ══ SETUP TAB ══ -->
+          <div id="panel-setup">
+            <div class="prog-steps">
+              <div class="prog-step active" id="ps1"><div class="prog-dot">1</div></div>
+              <div class="prog-line" id="pl1"></div>
+              <div class="prog-step" id="ps2"><div class="prog-dot">2</div></div>
+              <div class="prog-line" id="pl2"></div>
+              <div class="prog-step" id="ps3"><div class="prog-dot">3</div></div>
             </div>
-            <div class="step-item">
-              <span class="step-num">2</span>
-              <span>Hold your NFC sticker to the TOP BACK of your phone</span>
+
+            <div class="nfc-main-card" id="setupCard">
+              <span class="card-icon" id="setupIcon">🏷️</span>
+              <div class="card-title" id="setupTitle">Program Your NFC Tag</div>
+              <div class="card-desc" id="setupDesc">
+                This writes your emergency URL onto the NFC sticker.
+                Anyone who taps it will trigger your SOS alert instantly — no app needed.
+              </div>
+
+              <div id="setupRings" style="display:none;margin-bottom:16px;">
+                <div class="scan-rings">
+                  <div class="ring r1"></div><div class="ring r2"></div>
+                  <div class="ring r3"></div><div class="cdot"></div>
+                </div>
+                <div class="scan-label">Hold tag to TOP BACK of phone...</div>
+              </div>
+
+              <div class="tag-badge" id="setupBadge" style="display:none">
+                <div class="tag-badge-dot"></div>
+                <span id="setupBadgeText">Tag programmed ✓</span>
+              </div>
+
+              <div class="nfc-status" id="setupStatus"></div>
+
+              <button class="btn-nfc-primary" id="setupBtn" onclick="setupNFCTag()">
+                ⚡ Program NFC Tag Now
+              </button>
+              <button class="btn-nfc-secondary" id="verifyBtn" onclick="verifyTag()" style="display:none">
+                🔍 Verify Tag Contents
+              </button>
+              <button class="btn-nfc-secondary" id="reprogramBtn" onclick="resetSetup()" style="display:none">
+                🔄 Reprogram Tag
+              </button>
             </div>
-            <div class="step-item">
-              <span class="step-num">3</span>
-              <span>Tag gets linked to your account automatically</span>
+
+            <div class="info-card">
+              <strong>📱 Requirements:</strong> Chrome on Android. NFC ON in
+              Settings → Connections → NFC. Place tag on a
+              <strong>non-metal surface</strong> (plastic, fabric, paper).
             </div>
-            <div class="step-item">
-              <span class="step-num">4</span>
-              <span>Anyone tapping this tag triggers your SOS alert</span>
+          </div>
+
+          <!-- ══ SCAN/LINK TAB ══ -->
+          <div id="panel-scan" style="display:none">
+            <div class="nfc-main-card" id="scanCard">
+              <span class="card-icon" id="scanIcon">📡</span>
+              <div class="card-title" id="scanTitle">Link Tag to Account</div>
+              <div class="card-desc" id="scanDesc">
+                Scan your NFC tag to link it to your profile so the backend 
+                knows whose SOS to trigger when someone taps it.
+              </div>
+
+              <div id="scanRings" style="display:none;margin-bottom:16px;">
+                <div class="scan-rings">
+                  <div class="ring r1"></div><div class="ring r2"></div>
+                  <div class="ring r3"></div><div class="cdot"></div>
+                </div>
+                <div class="scan-label">Tap your NFC tag now...</div>
+              </div>
+
+              <div class="tag-badge" id="linkedBadge" style="display:none">
+                <div class="tag-badge-dot"></div>
+                <span id="linkedBadgeText">Tag linked</span>
+              </div>
+
+              <div class="nfc-status" id="scanStatus"></div>
+
+              <button class="btn-nfc-primary" id="scanBtn" onclick="startNFCScan()">
+                📡 Scan NFC Tag to Link
+              </button>
+              <button class="btn-nfc-danger" id="unlinkBtn" onclick="removeNFCTag()" style="display:none">
+                🗑️ Unlink Tag
+              </button>
+            </div>
+
+            <div class="info-card">
+              <strong>💡 Tip:</strong> First program your tag in the
+              <strong>Setup tab</strong>, then come here to link it to your account.
+            </div>
+          </div>
+
+          <!-- ══ GUIDE TAB ══ -->
+          <div id="panel-guide" style="display:none">
+            <div class="how-card">
+              <h3>⚡ How to Set Up (2 Steps)</h3>
+              <div class="how-step"><div class="how-num">1</div>
+                <span>Go to <strong>Setup tab</strong> → click "Program NFC Tag Now" → hold sticker to TOP BACK of your S24</span>
+              </div>
+              <div class="how-step"><div class="how-num">2</div>
+                <span>Go to <strong>Link Tag tab</strong> → click "Scan NFC Tag to Link" → tap sticker again</span>
+              </div>
+              <div class="how-step"><div class="how-num">✅</div>
+                <span>Done! Anyone tapping the sticker anywhere triggers your SOS + SMS instantly</span>
+              </div>
+            </div>
+
+            <div class="how-card">
+              <h3>📍 Best Places to Put Your Tag</h3>
+              <div class="how-step"><div class="how-num">👜</div>
+                <span><strong>Inside handbag flap</strong> — most accessible in emergency</span>
+              </div>
+              <div class="how-step"><div class="how-num">📱</div>
+                <span><strong>Back of phone case</strong> — always with you</span>
+              </div>
+              <div class="how-step"><div class="how-num">🪪</div>
+                <span><strong>Behind ID card in wallet</strong> — discreet, always carried</span>
+              </div>
+              <div class="how-step"><div class="how-num">⌚</div>
+                <span><strong>Watch strap or wristband</strong> — hidden and easy to tap</span>
+              </div>
+            </div>
+
+            <div class="how-card">
+              <h3>⚠️ Important Rules</h3>
+              <div class="how-step"><div class="how-num">❌</div>
+                <span><strong>Never on metal</strong> — blocks NFC completely (laptop, keys, etc.)</span>
+              </div>
+              <div class="how-step"><div class="how-num">🔓</div>
+                <span><strong>Phone must be unlocked</strong> — NFC blocked on lock screen</span>
+              </div>
+              <div class="how-step"><div class="how-num">📱</div>
+                <span><strong>Android Chrome only</strong> — Web NFC not supported on iPhone</span>
+              </div>
+              <div class="how-step"><div class="how-num">📶</div>
+                <span><strong>NFC must be ON</strong> — Settings → Connections → NFC → toggle ON</span>
+              </div>
             </div>
           </div>
 
         </div>
-
       </div>
     </section>
   </main>
 
   <script src="/app.js"></script>
-  <script src="/advanced-location.js"></script>
   <script src="/pages.js"></script>
+  <script>
+    const NFC_API = window.location.hostname === 'localhost'
+      ? 'http://localhost:5000/api'
+      : 'https://empower-backend-apo9.onrender.com/api';
+    const NFC_LANDING_PAGE = `${window.location.origin}/nfc.html`;
+
+    const getToken = () => localStorage.getItem('token');
+
+    // ── TAB SWITCHING ──
+    function switchTab(tab) {
+      ['setup','scan','guide'].forEach(t => {
+        document.getElementById(`panel-${t}`).style.display = t === tab ? 'block' : 'none';
+        document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+      });
+      if (tab === 'scan') loadLinkedTag();
+    }
+
+    // ── GET USER ID ──
+    async function getUserId() {
+      const res  = await fetch(`${NFC_API}/profile`, { headers: { Authorization: `Bearer ${getToken()}` } });
+      const data = await res.json();
+      return data.data?._id || data.data?.id || null;
+    }
+
+    // ── PROGRESS ──
+    function setProgStep(n) {
+      [1,2,3].forEach(i => {
+        const s = document.getElementById(`ps${i}`);
+        s.classList.remove('active','done');
+        if (i < n)  s.classList.add('done');
+        if (i === n) s.classList.add('active');
+      });
+      [1,2].forEach(i => document.getElementById(`pl${i}`).classList.toggle('done', i < n));
+    }
+
+    // ── STATUS ──
+    function showStatus(id, msg, type) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.className = `nfc-status show ${type}`;
+    }
+
+    // ── SETUP: WRITE URL TO TAG ──
+    async function setupNFCTag() {
+      if (!('NDEFReader' in window)) {
+        showStatus('setupStatus', '❌ Web NFC not supported. Use Chrome on Android.', 'error');
+        return;
+      }
+      const btn = document.getElementById('setupBtn');
+      try {
+        showStatus('setupStatus', '🔄 Getting your account details...', 'info');
+        setProgStep(1);
+        const userId = await getUserId();
+        if (!userId) { showStatus('setupStatus', '❌ Please login first.', 'error'); return; }
+
+        const tagURL = `${NFC_LANDING_PAGE}?tag=${encodeURIComponent(userId)}`;
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Waiting for tag...';
+        document.getElementById('setupRings').style.display = 'block';
+        document.getElementById('setupCard').classList.add('scanning');
+        setProgStep(2);
+        showStatus('setupStatus', '📱 Hold NFC sticker to TOP BACK of phone and keep still...', 'info');
+
+        const ndef = new NDEFReader();
+        await ndef.write({ records: [{ recordType: 'url', data: tagURL }] });
+
+        // Success
+        document.getElementById('setupRings').style.display = 'none';
+        document.getElementById('setupCard').classList.remove('scanning');
+        document.getElementById('setupCard').classList.add('connected');
+        setProgStep(3);
+        document.getElementById('setupIcon').textContent = '✅';
+        document.getElementById('setupTitle').textContent = 'Tag Programmed!';
+        document.getElementById('setupDesc').textContent = 'Your NFC tag is ready. Anyone tapping it will trigger your SOS immediately.';
+        document.getElementById('setupBadge').style.display = 'inline-flex';
+        document.getElementById('setupBadgeText').textContent = 'URL written ✓';
+        showStatus('setupStatus', '✅ Done! Now go to "Link Tag" tab to register it.', 'success');
+        btn.style.display = 'none';
+        document.getElementById('verifyBtn').style.display = 'block';
+        document.getElementById('reprogramBtn').style.display = 'block';
+        await saveTagToProfile(userId);
+
+      } catch (err) {
+        document.getElementById('setupRings').style.display = 'none';
+        document.getElementById('setupCard').classList.remove('scanning');
+        btn.disabled = false;
+        btn.textContent = '⚡ Program NFC Tag Now';
+        setProgStep(1);
+        const msg = err.name === 'NotAllowedError' ? '❌ NFC permission denied. Allow and retry.'
+                  : err.name === 'NotSupportedError' ? '❌ NFC not supported on this device.'
+                  : err.name === 'NetworkError' ? '❌ Tag not found. Place on non-metal surface.'
+                  : `❌ ${err.message}`;
+        showStatus('setupStatus', msg, 'error');
+      }
+    }
+
+    // ── SETUP: VERIFY ──
+    async function verifyTag() {
+      if (!('NDEFReader' in window)) return;
+      showStatus('setupStatus', '📡 Tap your tag to verify...', 'info');
+      try {
+        const ndef = new NDEFReader();
+        await ndef.scan();
+        ndef.onreading = (e) => {
+          const rec = e.message?.records?.[0];
+          if (rec) {
+            const url = new TextDecoder().decode(rec.data);
+            showStatus('setupStatus',
+              url.includes('nfc.html?tag=')
+                ? '✅ Tag verified! Contains correct emergency URL.'
+                : `⚠️ Tag contains: ${url.substring(0,60)}`,
+              url.includes('nfc.html?tag=') ? 'success' : 'warning'
+            );
+          }
+        };
+      } catch (err) {
+        showStatus('setupStatus', '❌ ' + err.message, 'error');
+      }
+    }
+
+    // ── SETUP: RESET ──
+    function resetSetup() {
+      document.getElementById('setupCard').classList.remove('connected','scanning');
+      document.getElementById('setupIcon').textContent = '🏷️';
+      document.getElementById('setupTitle').textContent = 'Program Your NFC Tag';
+      document.getElementById('setupDesc').textContent = 'This writes your emergency URL onto the NFC sticker. Anyone who taps it will trigger your SOS alert instantly.';
+      document.getElementById('setupBadge').style.display = 'none';
+      const btn = document.getElementById('setupBtn');
+      btn.style.display = 'flex'; btn.disabled = false; btn.textContent = '⚡ Program NFC Tag Now';
+      document.getElementById('verifyBtn').style.display = 'none';
+      document.getElementById('reprogramBtn').style.display = 'none';
+      document.getElementById('setupStatus').className = 'nfc-status';
+      setProgStep(1);
+    }
+
+    // ── SCAN: LINK TAG ──
+    async function startNFCScan() {
+      if (!('NDEFReader' in window)) {
+        showStatus('scanStatus', '❌ Web NFC not supported. Use Chrome on Android.', 'error');
+        return;
+      }
+      const btn = document.getElementById('scanBtn');
+      try {
+        btn.disabled = true; btn.textContent = '📡 Scanning...';
+        document.getElementById('scanRings').style.display = 'block';
+        document.getElementById('scanCard').classList.add('scanning');
+        showStatus('scanStatus', 'Tap your NFC tag to the back of your phone...', 'info');
+
+        const ndef = new NDEFReader();
+        await ndef.scan();
+
+        ndef.onreading = async (e) => {
+          document.getElementById('scanRings').style.display = 'none';
+          document.getElementById('scanCard').classList.remove('scanning');
+
+          let tagId = null;
+          const rec = e.message?.records?.[0];
+          if (rec) {
+            const url = new TextDecoder().decode(rec.data);
+            const match = url.match(/[?&]tag=([a-f0-9-]+)/i);
+            if (match) tagId = match[1];
+          }
+
+          if (!tagId) {
+            document.getElementById('scanRings').style.display = 'none';
+            document.getElementById('scanCard').classList.remove('scanning');
+            btn.disabled = false;
+            btn.textContent = '📡 Scan NFC Tag to Link';
+            showStatus(
+              'scanStatus',
+              '⚠️ This tag is not programmed with the EMPOWER SAFE emergency URL yet. Go to Setup first, then scan again.',
+              'warning'
+            );
+            return;
+          }
+
+          showStatus('scanStatus', '✅ Tag detected! Linking to your account...', 'success');
+          await saveTagToProfile(tagId);
+
+          document.getElementById('scanCard').classList.add('connected');
+          document.getElementById('scanIcon').textContent = '✅';
+          document.getElementById('scanTitle').textContent = 'Tag Linked!';
+          document.getElementById('scanDesc').textContent = 'Your NFC tag is linked. Tapping it anywhere triggers your SOS.';
+          document.getElementById('linkedBadgeText').textContent = `ID: ${tagId.substring(0,18)}...`;
+          document.getElementById('linkedBadge').style.display = 'inline-flex';
+          btn.style.display = 'none';
+          document.getElementById('unlinkBtn').style.display = 'block';
+          showStatus('scanStatus', '✅ Tag successfully linked to your account!', 'success');
+        };
+
+        ndef.onerror = () => {
+          document.getElementById('scanRings').style.display = 'none';
+          document.getElementById('scanCard').classList.remove('scanning');
+          btn.disabled = false; btn.textContent = '📡 Scan NFC Tag to Link';
+          showStatus('scanStatus', '❌ Scan failed. Try again.', 'error');
+        };
+
+      } catch (err) {
+        document.getElementById('scanRings').style.display = 'none';
+        document.getElementById('scanCard').classList.remove('scanning');
+        btn.disabled = false; btn.textContent = '📡 Scan NFC Tag to Link';
+        showStatus('scanStatus', '❌ ' + err.message, 'error');
+      }
+    }
+
+    // ── SAVE TAG TO PROFILE ──
+    async function saveTagToProfile(tagId) {
+      const res = await fetch(`${NFC_API}/profile/nfc`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ nfcTagId: tagId })
+      });
+
+      let data = null;
+      try {
+        data = await res.json();
+      } catch (parseError) {
+        data = null;
+      }
+
+      if (!res.ok || data?.success === false) {
+        throw new Error(data?.error || 'Failed to save tag to your profile');
+      }
+
+      console.log('✅ Tag saved to profile:', tagId);
+      return data?.data || null;
+    }
+
+    // ── LOAD EXISTING TAG ──
+    async function loadLinkedTag() {
+      try {
+        const res  = await fetch(`${NFC_API}/profile`, { headers: { Authorization: `Bearer ${getToken()}` } });
+        const data = await res.json();
+        const tagId = data.data?.nfcTagId;
+        if (!tagId) return;
+
+        document.getElementById('scanCard').classList.add('connected');
+        document.getElementById('scanIcon').textContent = '✅';
+        document.getElementById('scanTitle').textContent = 'Tag Already Linked!';
+        document.getElementById('scanDesc').textContent = 'Your NFC tag is linked and ready to use.';
+        document.getElementById('linkedBadgeText').textContent = `ID: ${tagId.substring(0,18)}`;
+        document.getElementById('linkedBadge').style.display = 'inline-flex';
+        document.getElementById('scanBtn').style.display = 'none';
+        document.getElementById('unlinkBtn').style.display = 'block';
+      } catch (err) { console.error('Load profile failed:', err); }
+    }
+
+    // ── UNLINK TAG ──
+    async function removeNFCTag() {
+      if (!confirm('Remove linked NFC tag?')) return;
+      try {
+        await fetch(`${NFC_API}/profile/nfc`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${getToken()}` }
+        });
+        document.getElementById('scanCard').classList.remove('connected');
+        document.getElementById('scanIcon').textContent = '📡';
+        document.getElementById('scanTitle').textContent = 'Link Tag to Account';
+        document.getElementById('scanDesc').textContent = 'Scan your NFC tag to link it to your profile.';
+        document.getElementById('linkedBadge').style.display = 'none';
+        document.getElementById('scanBtn').style.display = 'flex';
+        document.getElementById('unlinkBtn').style.display = 'none';
+        showStatus('scanStatus', 'Tag unlinked successfully.', 'info');
+      } catch (err) {
+        showStatus('scanStatus', '❌ Failed: ' + err.message, 'error');
+      }
+    }
+
+    // ── LOGOUT ──
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = '/login.html';
+      });
+    });
+  </script>
 </body>
 </html>

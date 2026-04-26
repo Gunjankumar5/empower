@@ -10,7 +10,9 @@ const sendError = (res, error, status = 400) => res.status(status).json({ succes
 
 router.post('/scan', async (req, res) => {
   try {
-    const { tagId, lat, lng } = req.body;
+    const rawTagId = req.body.tagId ?? req.body.tag ?? '';
+    const { lat, lng } = req.body;
+    const tagId = String(rawTagId).trim();
 
     if (!tagId) {
       return sendError(res, 'tagId is required', 400);
@@ -24,11 +26,19 @@ router.post('/scan', async (req, res) => {
     // Use provided location or fall back to user's last known location
     let resolvedLat = lat;
     let resolvedLng = lng;
+    let locationSource = 'device';
+    let locationWarning = '';
 
     if (resolvedLat == null || resolvedLng == null) {
       const location = user.lastKnownLocation || {};
-      resolvedLat = location.lat ?? null;
-      resolvedLng = location.lng ?? null;
+      if (location.lat != null && location.lng != null) {
+        resolvedLat = location.lat;
+        resolvedLng = location.lng;
+        locationSource = 'profile';
+      } else {
+        locationSource = 'unavailable';
+        locationWarning = 'No live GPS location was available, so the SOS was sent without coordinates.';
+      }
     }
 
     // Create and send alert
@@ -48,6 +58,8 @@ router.post('/scan', async (req, res) => {
       userId: user._id,
       contactsNotified,
       alert,
+      locationSource,
+      locationWarning,
     }, 201);
   } catch (error) {
     console.error('NFC scan error:', error);

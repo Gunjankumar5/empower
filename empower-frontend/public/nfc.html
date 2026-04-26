@@ -4,29 +4,31 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Emergency Alert — Empower Safe</title>
-  <!-- Leaflet.js for live map tracking -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
+
     body {
-      font-family: -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #0D0D14;
-      color: white;
+      color: #F0EEF8;
       height: 100vh;
       display: flex;
       flex-direction: column;
     }
+
+    /* ── Layout ── */
     .container {
       display: flex;
-      gap: 20px;
+      gap: 16px;
       height: 100vh;
-      padding: 20px;
+      padding: 16px;
     }
     .card-section {
-      flex: 0 0 360px;
+      flex: 0 0 340px;
       background: #13131F;
       border-radius: 20px;
-      padding: 30px;
+      padding: 28px 24px;
       border: 1px solid #1E1E2E;
       display: flex;
       flex-direction: column;
@@ -38,374 +40,494 @@
       border: 1px solid #1E1E2E;
       overflow: hidden;
       position: relative;
+      display: none;
     }
-    #map {
-      width: 100%;
-      height: 100%;
-    }
-    .icon { font-size: 64px; margin-bottom: 20px; text-align: center; }
-    h1 { font-size: 22px; margin-bottom: 10px; }
-    p  { font-size: 14px; color: #6B6880; margin-bottom: 24px; line-height: 1.6; }
+    .map-section.visible { display: block; }
+    #map { width: 100%; height: 100%; }
 
-    .btn-sos {
+    /* ── Icon ── */
+    .big-icon {
+      font-size: 60px;
+      text-align: center;
+      margin-bottom: 18px;
+      line-height: 1;
+    }
+
+    /* ── Countdown ring ── */
+    .countdown-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0 8px;
+      position: relative;
+    }
+    .countdown-ring {
+      width: 90px;
+      height: 90px;
+    }
+    .countdown-ring circle {
+      fill: none;
+      stroke-width: 5;
+      transform-origin: center;
+    }
+    .ring-bg    { stroke: #1E1E2E; }
+    .ring-fill  {
+      stroke: #FF3E7F;
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      stroke-dasharray: 245;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1s linear;
+    }
+    .countdown-num {
+      position: absolute;
+      font-size: 32px;
+      font-weight: 800;
+      color: #FF3E7F;
+    }
+
+    h1 { font-size: 21px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+    .subtitle { font-size: 13px; color: #6B6880; text-align: center; line-height: 1.5; margin-bottom: 20px; }
+
+    /* ── Buttons ── */
+    .btn-cancel {
       width: 100%;
-      padding: 16px;
+      padding: 13px;
+      border-radius: 12px;
+      border: 1px solid #2a2a3e;
+      background: transparent;
+      color: #6B6880;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s;
+      margin-top: 10px;
+    }
+    .btn-cancel:hover { color: #F0EEF8; border-color: #4a4a6e; }
+
+    .btn-retry {
+      width: 100%;
+      padding: 14px;
       border-radius: 12px;
       border: none;
       background: linear-gradient(135deg, #FF3E7F, #7C3AED);
       color: white;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      margin-bottom: 12px;
-    }
-    .btn-cancel {
-      width: 100%;
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid #1E1E2E;
-      background: transparent;
-      color: #6B6880;
-      font-size: 14px;
-      cursor: pointer;
+      font-family: inherit;
+      margin-bottom: 10px;
     }
 
-    .countdown {
-      font-size: 48px;
-      font-weight: 700;
-      color: #FF3E7F;
-      margin: 16px 0;
-      text-align: center;
-    }
-    .status-msg {
-      font-size: 14px;
+    /* ── Status badge ── */
+    .status-line {
+      font-size: 13px;
       color: #6B6880;
-      margin-top: 12px;
-      min-height: 20px;
+      text-align: center;
+      min-height: 18px;
+      margin: 8px 0;
     }
-    .success { color: #22C55E; }
-    .error   { color: #EF4444; }
-    .location-info {
-      background: #1A1A26;
-      padding: 12px;
-      border-radius: 8px;
-      margin: 12px 0;
+    .status-line.ok  { color: #22C55E; }
+    .status-line.bad { color: #EF4444; }
+
+    /* ── Info boxes ── */
+    .info-box {
+      background: #1A1A28;
+      border: 1px solid #2a2a3e;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 10px 0;
       font-size: 12px;
-      color: #9CA3AF;
     }
-    .location-info strong {
-      color: #E5E7EB;
+    .info-box strong {
       display: block;
+      color: #9CA3AF;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
       margin-bottom: 4px;
     }
+    .info-box span { color: #D1D5DB; line-height: 1.5; }
 
-    .pulse {
-      animation: pulse 1s infinite;
-    }
+    /* ── Sending pulse ── */
     @keyframes pulse {
       0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
+      50%       { transform: scale(1.06); }
+    }
+    .pulse-anim { animation: pulse 1s ease-in-out infinite; }
+
+    /* ── Map attribution fix ── */
+    .leaflet-control-attribution { font-size: 10px; }
+
+    /* ── Sending spinner rings ── */
+    .scan-rings {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 16px;
+    }
+    .scan-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid #FF3E7F;
+      opacity: 0;
+      animation: expandR 1.6s ease-out infinite;
+    }
+    .scan-ring:nth-child(2) { animation-delay: .5s; }
+    .scan-ring:nth-child(3) { animation-delay: 1s; }
+    @keyframes expandR {
+      0%   { transform: scale(.4); opacity: .8; }
+      100% { transform: scale(1.6); opacity: 0; }
     }
 
-    /* Responsive for mobile */
-    @media (max-width: 768px) {
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
       .container {
         flex-direction: column;
+        padding: 10px;
+        gap: 10px;
       }
       .card-section {
-        flex: 0 0 auto;
-        max-height: 40vh;
+        flex: none;
+        max-height: 48vh;
+        padding: 20px 18px;
       }
-      .map-section {
+      .map-section.visible {
         flex: 1;
-        min-height: 300px;
+        min-height: 260px;
       }
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="card-section" id="mainCard">
 
-    <!-- INITIAL STATE -->
+<div class="container">
+
+  <!-- ══════════════════════════ CARD ══════════════════════════ -->
+  <div class="card-section">
+
+    <!-- STATE: INITIAL (countdown) -->
     <div id="stateInitial">
-      <div class="icon">🆘</div>
+      <div class="big-icon">🆘</div>
       <h1>Emergency Alert</h1>
-      <p>NFC tag detected.<br>Sending SOS alert to your emergency contacts.</p>
-      <div class="countdown" id="countdownNum">3</div>
-      <p style="font-size:13px;color:#FF3E7F;">Sending automatically...</p>
+      <p class="subtitle">NFC tag detected.<br>Sending SOS to your emergency contacts.</p>
+
+      <div class="countdown-wrap">
+        <svg class="countdown-ring" viewBox="0 0 90 90">
+          <circle class="ring-bg"   cx="45" cy="45" r="39"/>
+          <circle class="ring-fill" cx="45" cy="45" r="39" id="ringFill"/>
+        </svg>
+        <span class="countdown-num" id="countdownNum">3</span>
+      </div>
+
+      <p class="status-line" style="color:#FF3E7F;">Sending automatically…</p>
+
       <button class="btn-cancel" onclick="cancelAlert()">✕ Cancel</button>
     </div>
 
-    <!-- SENDING STATE -->
+    <!-- STATE: SENDING -->
     <div id="stateSending" style="display:none">
-      <div class="icon pulse">📡</div>
-      <h1>Sending Alert...</h1>
-      <p>Getting your location and<br>notifying emergency contacts.</p>
-      <div class="status-msg" id="sendingMsg">Getting GPS location...</div>
-      <div class="location-info">
-        <strong>📍 Current Location:</strong>
-        <div id="currentLocationText">Searching...</div>
+      <div class="scan-rings">
+        <div class="scan-ring"></div>
+        <div class="scan-ring"></div>
+        <div class="scan-ring"></div>
+      </div>
+      <h1>Sending Alert…</h1>
+      <p class="subtitle">Getting your location and<br>notifying emergency contacts.</p>
+      <div class="status-line" id="sendingMsg">Getting GPS location…</div>
+      <div class="info-box">
+        <strong>📍 Current Location</strong>
+        <span id="currentLocationText">Searching…</span>
       </div>
     </div>
 
-    <!-- SUCCESS STATE -->
+    <!-- STATE: SUCCESS -->
     <div id="stateDone" style="display:none">
-      <div class="icon">✅</div>
+      <div class="big-icon">✅</div>
       <h1>Alert Sent!</h1>
-      <p id="successMsg">Your emergency contacts have been notified with your location.</p>
-      <div class="status-msg success">Help is on the way.</div>
-      <div class="location-info">
-        <strong>📍 Final Location:</strong>
-        <div id="finalLocationText">Processing...</div>
+      <p class="subtitle" id="successMsg">Your emergency contacts have been notified with your location.</p>
+      <div class="status-line ok">Help is on the way.</div>
+      <div class="info-box">
+        <strong>📍 Location</strong>
+        <span id="finalLocationText">Processing…</span>
       </div>
-      <div class="location-info">
-        <strong>👥 Contacts Notified:</strong>
-        <div id="contactsNotifiedText">-</div>
+      <div class="info-box">
+        <strong>👥 Contacts Notified</strong>
+        <span id="contactsNotifiedText">—</span>
       </div>
-      <br/>
-      <button class="btn-cancel" onclick="window.close()">Close</button>
+      <button class="btn-cancel" onclick="window.close()" style="margin-top:16px">Close</button>
     </div>
 
-    <!-- ERROR STATE -->
+    <!-- STATE: ERROR -->
     <div id="stateError" style="display:none">
-      <div class="icon">❌</div>
+      <div class="big-icon">❌</div>
       <h1>Alert Failed</h1>
-      <p id="errorMsg">Could not send alert.</p>
-      <div class="status-msg error">Please call 112 immediately.</div>
-      <br/>
-      <button class="btn-sos" onclick="retrySOS()">Retry</button>
+      <p class="subtitle" id="errorMsg">Could not send alert.</p>
+      <div class="status-line bad">Please call 112 immediately.</div>
+      <a href="tel:112" style="display:block;text-decoration:none;margin-top:14px">
+        <button class="btn-retry">📞 Call 112 Now</button>
+      </a>
+      <button class="btn-retry" onclick="retrySOS()" style="background:linear-gradient(135deg,#7C3AED,#2563eb)">
+        🔄 Retry Alert
+      </button>
       <button class="btn-cancel" onclick="window.close()">Close</button>
     </div>
 
-  </div>
+    <!-- STATE: NO TAG -->
+    <div id="stateNoTag" style="display:none">
+      <div class="big-icon">⚠️</div>
+      <h1>Invalid Tag</h1>
+      <p class="subtitle">This NFC tag is not linked to any account. Please set it up in the app first.</p>
+      <button class="btn-cancel" onclick="window.close()">Close</button>
+    </div>
 
-  <!-- LIVE MAP SECTION -->
-  <div class="map-section" id="mapContainer" style="display:none;">
+  </div><!-- /card-section -->
+
+  <!-- ══════════════════════════ MAP ══════════════════════════ -->
+  <div class="map-section" id="mapSection">
     <div id="map"></div>
   </div>
-</div>
+
+</div><!-- /container -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
   const API_BASE = 'https://empower-backend-apo9.onrender.com/api';
 
-  // Get tag ID from URL
+  // ── Parse tag ID from URL ────────────────────────────────
   const params = new URLSearchParams(window.location.search);
   const tagId  = params.get('tag');
 
-  let cancelled  = false;
-  let countdown  = 3;
-  let timer      = null;
-  let currentAlertId = null;
-  let map = null;
-  let mapMarkers = [];
-  let polyline = null;
-  let locationTrail = [];
-  let locationUpdateTimer = null;
+  // ── State ────────────────────────────────────────────────
+  let cancelled       = false;
+  let countdown       = 3;
+  let countdownTimer  = null;
+  let currentAlertId  = null;
+  let map             = null;
+  let mapMarker       = null;
+  let mapPolyline     = null;
+  let locationTrail   = [];
+  let geoWatchId      = null;
 
-  // Initialize Leaflet map
-  function initMap() {
-    if (map) return;
-    const mapContainer = document.getElementById('mapContainer');
-    mapContainer.style.display = 'block';
-    map = L.map('map').setView([20, 0], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19
-    }).addTo(map);
-  }
+  // Countdown ring: circumference = 2πr = 2π×39 ≈ 245
+  const CIRC = 245;
+  const ringEl = () => document.getElementById('ringFill');
 
-  function updateMapLocation(lat, lng) {
-    if (!map) initMap();
-    
-    // Add location to trail
-    locationTrail.push([lat, lng]);
-
-    // Center map on current location
-    map.setView([lat, lng], 16);
-
-    // Remove old marker
-    mapMarkers.forEach(marker => map.removeLayer(marker));
-    mapMarkers = [];
-
-    // Add new marker at current location
-    const marker = L.marker([lat, lng], {
-      icon: L.icon({
-        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSI5IiBmaWxsPSIjRkYzRTdGIi8+PC9zdmc+',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
-      })
-    }).addTo(map).bindPopup(`📍 Current Location<br>Lat: ${lat.toFixed(4)}<br>Lng: ${lng.toFixed(4)}`);
-
-    mapMarkers.push(marker);
-
-    // Draw trail polyline
-    if (polyline) map.removeLayer(polyline);
-    if (locationTrail.length > 1) {
-      polyline = L.polyline(locationTrail, { color: '#FF3E7F', weight: 3, opacity: 0.7 }).addTo(map);
-    }
-
-    // Update location display
-    const locText = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
-    document.getElementById('currentLocationText').textContent = locText;
-    document.getElementById('finalLocationText').textContent = locText;
-  }
-
+  // ── Show / hide states ───────────────────────────────────
   function showState(name) {
-    ['Initial','Sending','Done','Error'].forEach(s => {
-      document.getElementById(`state${s}`).style.display =
+    ['Initial','Sending','Done','Error','NoTag'].forEach(s => {
+      document.getElementById('state' + s).style.display =
         s === name ? 'block' : 'none';
     });
   }
 
-  function cancelAlert() {
-    cancelled = true;
-    clearInterval(timer);
-    if (locationUpdateTimer) clearInterval(locationUpdateTimer);
-    showState('Error');
-    document.getElementById('errorMsg').textContent =
-      'Alert cancelled by user.';
-    document.querySelector('.status-msg.error').textContent =
-      'You cancelled the alert.';
+  // ── Map helpers ──────────────────────────────────────────
+  function initMap() {
+    if (map) return;
+    document.getElementById('mapSection').classList.add('visible');
+    map = L.map('map', { zoomControl: true }).setView([20.5937, 78.9629], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+      maxZoom: 19
+    }).addTo(map);
   }
 
-  function startCountdown() {
-    if (!tagId) {
-      showState('Error');
-      document.getElementById('errorMsg').textContent =
-        'Invalid NFC tag — no user ID found.';
-      return;
+  function updateMap(lat, lng) {
+    if (!map) initMap();
+    locationTrail.push([lat, lng]);
+    map.setView([lat, lng], 16);
+
+    // Custom pulsing marker icon
+    const iconHtml = `<div style="
+      width:18px;height:18px;border-radius:50%;
+      background:#FF3E7F;
+      box-shadow:0 0 0 6px rgba(255,62,127,.3);
+      animation:pulseMarker 1.2s ease-in-out infinite;
+    "></div>
+    <style>
+      @keyframes pulseMarker{0%,100%{box-shadow:0 0 0 4px rgba(255,62,127,.4)}
+      50%{box-shadow:0 0 0 10px rgba(255,62,127,.15)}}
+    </style>`;
+
+    const icon = L.divIcon({ html: iconHtml, className: '', iconSize: [18,18], iconAnchor: [9,9] });
+
+    if (mapMarker) map.removeLayer(mapMarker);
+    mapMarker = L.marker([lat, lng], { icon })
+      .addTo(map)
+      .bindPopup(`📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+
+    if (mapPolyline) map.removeLayer(mapPolyline);
+    if (locationTrail.length > 1) {
+      mapPolyline = L.polyline(locationTrail, { color: '#FF3E7F', weight: 3, opacity: .7 }).addTo(map);
     }
 
+    // Update text
+    const locStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    const el1 = document.getElementById('currentLocationText');
+    const el2 = document.getElementById('finalLocationText');
+    if (el1) el1.textContent = locStr;
+    if (el2) el2.textContent = locStr;
+  }
+
+  // ── Get location ─────────────────────────────────────────
+  function getLocation() {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) { resolve(null); return; }
+      navigator.geolocation.getCurrentPosition(
+        pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        ()  => resolve(null),
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    });
+  }
+
+  // ── Cancel ───────────────────────────────────────────────
+  function cancelAlert() {
+    cancelled = true;
+    clearInterval(countdownTimer);
+    if (geoWatchId !== null) navigator.geolocation.clearWatch(geoWatchId);
+    showState('Error');
+    document.getElementById('errorMsg').textContent = 'Alert was cancelled.';
+    document.querySelector('.status-line.bad').textContent = 'You cancelled the alert.';
+  }
+
+  // ── Countdown ────────────────────────────────────────────
+  function startCountdown() {
+    if (!tagId) { showState('NoTag'); return; }
+
     initMap();
-    timer = setInterval(() => {
+
+    // Immediately try to get location and show on map
+    getLocation().then(loc => { if (loc) updateMap(loc.lat, loc.lng); });
+
+    countdownTimer = setInterval(() => {
       countdown--;
       document.getElementById('countdownNum').textContent = countdown;
 
+      // Update ring stroke offset (3→0 in 3 steps)
+      // offset should go from CIRC (full gap) to 0 (full circle)
+      // at countdown=3 offset=CIRC, at 0 offset=0
+      const offset = (countdown / 3) * CIRC;
+      ringEl().style.strokeDashoffset = offset;
+
       if (countdown <= 0) {
-        clearInterval(timer);
+        clearInterval(countdownTimer);
         if (!cancelled) triggerSOS();
       }
     }, 1000);
   }
 
+  // ── Trigger SOS ──────────────────────────────────────────
   async function triggerSOS() {
     showState('Sending');
 
+    // Get GPS
+    let lat = null, lng = null;
+    document.getElementById('sendingMsg').textContent = 'Getting GPS location…';
+    const loc = await getLocation();
+    if (loc) {
+      lat = loc.lat; lng = loc.lng;
+      updateMap(lat, lng);
+      document.getElementById('sendingMsg').textContent = 'Location found! Sending SMS…';
+    } else {
+      document.getElementById('sendingMsg').textContent = 'No GPS — using your last known location if available…';
+    }
+
     try {
-      // Get initial location
-      document.getElementById('sendingMsg').textContent = 'Getting GPS location...';
-
-      let lat = null, lng = null;
-      try {
-        const pos = await new Promise((res, rej) =>
-          navigator.geolocation.getCurrentPosition(res, rej, {
-            enableHighAccuracy: true,
-            timeout: 8000
-          })
-        );
-        lat = pos.coords.latitude;
-        lng = pos.coords.longitude;
-        updateMapLocation(lat, lng);
-        document.getElementById('sendingMsg').textContent = 'Location found! Sending SMS...';
-      } catch (e) {
-        document.getElementById('sendingMsg').textContent = 'Location unavailable, sending alert anyway...';
-      }
-
-      // Call backend NFC scan endpoint
-      const res = await fetch(`${API_BASE}/nfc/scan`, {
-        method: 'POST',
+      const res  = await fetch(`${API_BASE}/nfc/scan`, {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tagId, lat, lng })
+        body:    JSON.stringify({ tagId, lat, lng })
       });
-
       const data = await res.json();
 
       if (res.ok && data.success) {
         currentAlertId = data.data?.alert?._id;
-        
-        // Start live location tracking
-        if (currentAlertId) {
-          startLiveLocationTracking(currentAlertId);
-        }
+        const notified = data.data?.contactsNotified ?? 0;
+        const locationWarning = data.data?.locationWarning || '';
+        const locationSource = data.data?.locationSource || (lat != null ? 'device' : 'unavailable');
+        const alertLocation = data.data?.alert?.location || {};
+        const resolvedLocationText = alertLocation.lat != null && alertLocation.lng != null
+          ? `${Number(alertLocation.lat).toFixed(5)}, ${Number(alertLocation.lng).toFixed(5)}`
+          : locationSource === 'profile'
+            ? 'Last known location used.'
+            : 'Location unavailable.';
 
-        document.getElementById('contactsNotifiedText').textContent = 
-          data.data?.contactsNotified || 0 + ' contact(s)';
-        
-        showState('Done');
+        document.getElementById('contactsNotifiedText').textContent =
+          notified + ' contact' + (notified !== 1 ? 's' : '') + ' notified';
         document.getElementById('successMsg').textContent =
-          `Alert sent to ${data.data?.contactsNotified || '?'} emergency contact(s).`;
+          locationWarning
+            ? `${locationWarning} Alert sent to ${notified} emergency contact${notified !== 1 ? 's' : ''}.`
+            : `Alert sent to ${notified} emergency contact${notified !== 1 ? 's' : ''}.`;
+        document.getElementById('finalLocationText').textContent = resolvedLocationText;
+
+        showState('Done');
+
+        // Start live location streaming
+        if (currentAlertId) startLiveTracking(currentAlertId);
+
       } else {
-        throw new Error(data.error || 'Server error');
+        throw new Error(data.error || data.message || 'Server error');
       }
 
     } catch (err) {
       showState('Error');
       document.getElementById('errorMsg').textContent =
-        err.message || 'Network error. Please call 112.';
+        err.message === 'Failed to fetch'
+          ? 'No network — please call 112.'
+          : err.message || 'Unknown error. Please call 112.';
     }
   }
 
-  async function startLiveLocationTracking(alertId) {
-    console.log('🔴 Starting live location tracking for alert:', alertId);
-    
-    if (!navigator.geolocation) {
-      console.warn('Geolocation not supported');
-      return;
-    }
+  // ── Live GPS tracking after alert sent ───────────────────
+  function startLiveTracking(alertId) {
+    if (!navigator.geolocation) return;
 
-    // Update location every 5 seconds
-    const watchId = navigator.geolocation.watchPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        const accuracy = position.coords.accuracy;
+    geoWatchId = navigator.geolocation.watchPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        updateMap(lat, lng);
 
-        updateMapLocation(lat, lng);
-
-        // Send location to backend
-        try {
-          const token = localStorage.getItem('token');
-          if (token) {
+        // Push to backend
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (token) {
+          try {
             await fetch(`${API_BASE}/alerts/${alertId}/location`, {
-              method: 'POST',
+              method:  'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                Authorization:  `Bearer ${token}`
               },
-              body: JSON.stringify({ lat, lng, accuracy })
+              body: JSON.stringify({ lat, lng, accuracy: pos.coords.accuracy })
             });
-          }
-        } catch (error) {
-          console.warn('Failed to update location on backend:', error);
+          } catch {}
         }
       },
-      (error) => {
-        console.error('Geolocation error:', error);
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 0,
-        timeout: 10000
-      }
+      null,
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
     );
   }
 
+  // ── Retry ────────────────────────────────────────────────
   function retrySOS() {
     cancelled = false;
     countdown = 3;
     locationTrail = [];
-    mapMarkers = [];
-    if (polyline && map) map.removeLayer(polyline);
-    polyline = null;
-    showState('Initial');
+    if (geoWatchId !== null) { navigator.geolocation.clearWatch(geoWatchId); geoWatchId = null; }
+    if (mapMarker)   { map.removeLayer(mapMarker);   mapMarker   = null; }
+    if (mapPolyline) { map.removeLayer(mapPolyline); mapPolyline = null; }
+    ringEl().style.strokeDashoffset = CIRC;
     document.getElementById('countdownNum').textContent = '3';
+    showState('Initial');
     startCountdown();
   }
 
-  // Auto-start countdown on page load
+  // ── Boot ─────────────────────────────────────────────────
   window.addEventListener('load', startCountdown);
 </script>
+
 </body>
 </html>
