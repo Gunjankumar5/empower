@@ -571,8 +571,10 @@ async function initContactsPage() {
   const renderContacts = () => {
     if (!contacts.length) {
       contactsList.innerHTML = `
-        <div class="card" style="text-align: center;">
-          <p style="margin: 0;">No emergency contacts added yet.</p>
+        <div class="empty-state">
+          <div class="empty-state-icon">📵</div>
+          <h3>No Emergency Contacts</h3>
+          <p>Add at least one emergency contact to receive SOS alerts.</p>
         </div>
       `;
       return;
@@ -581,17 +583,15 @@ async function initContactsPage() {
     contactsList.innerHTML = contacts
       .map(
         (contact) => `
-        <article class="card contact-card" data-id="${escapeHtml(contact.id)}">
-          <div class="flex-between" style="gap: 16px; align-items: flex-start;">
-            <div>
-              <h3 style="margin-bottom: 4px;">${escapeHtml(contact.name)}</h3>
-              <p style="margin-bottom: 4px;">${escapeHtml(contact.phone)}</p>
-              <p style="margin-bottom: 0; color: var(--text-light);">${escapeHtml(contact.relation || 'Contact')}</p>
-            </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
-              <button type="button" class="btn btn-secondary btn-sm" data-action="edit">Edit</button>
-              <button type="button" class="btn btn-danger btn-sm" data-action="delete">Delete</button>
-            </div>
+        <article class="contact-card" data-id="${escapeHtml(contact.id)}">
+          <div class="contact-info">
+            <div class="contact-name">${escapeHtml(contact.name)}</div>
+            <div class="contact-phone">${escapeHtml(contact.phone)}</div>
+            ${contact.relation ? `<div class="contact-relation">${escapeHtml(contact.relation)}</div>` : ''}
+          </div>
+          <div class="contact-actions">
+            <button type="button" class="btn btn-secondary btn-sm" data-action="edit" title="Edit contact">✏️ Edit</button>
+            <button type="button" class="btn btn-danger btn-sm" data-action="delete" title="Delete contact">🗑️ Delete</button>
           </div>
         </article>
       `
@@ -1123,10 +1123,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ========== NFC REGISTRATION FUNCTIONALITY ==========
 
-const API_BASE = window.location.hostname === 'localhost'
-  ? 'http://localhost:5000/api'
-  : 'https://empower-backend-apo9.onrender.com/api';
-
 // Load existing tag on page open
 if (page === 'features') {
   window.addEventListener('load', loadCurrentTag);
@@ -1134,10 +1130,7 @@ if (page === 'features') {
 
 async function loadCurrentTag() {
   try {
-    const res = await fetch(`${API_BASE}/profile`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    });
-    const data = await res.json();
+    const data = await apiCall('/profile');
     const tagId = data.data?.nfcTagId;
 
     if (tagId) {
@@ -1207,26 +1200,13 @@ async function startNFCScan() {
 
 async function saveTagToProfile(tagId) {
   try {
-    const res = await fetch(`${API_BASE}/profile/nfc`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({ nfcTagId: tagId })
-    });
+    const data = await apiCall('/profile/nfc', 'POST', { nfcTagId: tagId });
 
-    const data = await res.json();
+    showTagLinked(tagId);
+    showMessage('✅ NFC tag linked successfully!', 'success');
 
-    if (res.ok) {
-      showTagLinked(tagId);
-      showMessage('✅ NFC tag linked successfully!', 'success');
-
-      // Also write URL to tag if possible
-      writeURLToTag(tagId);
-    } else {
-      throw new Error(data.error || 'Failed to save');
-    }
+    // Also write URL to tag if possible
+    writeURLToTag(tagId);
   } catch (err) {
     showMessage('❌ Failed to save tag: ' + err.message, 'error');
     document.getElementById('scanBtn').disabled = false;
@@ -1267,10 +1247,7 @@ async function removeNFCTag() {
   if (!confirm('Remove linked NFC tag?')) return;
 
   try {
-    await fetch(`${API_BASE}/profile/nfc`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    });
+    await apiCall('/profile/nfc', 'DELETE');
 
     // Reset UI
     document.getElementById('nfcIcon').textContent = '📵';
