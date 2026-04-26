@@ -27,43 +27,64 @@
   <main class="page">
     <section class="page-content">
       <div class="container" style="padding-top: 32px; padding-bottom: 32px;">
-        <div class="grid grid-2" style="align-items: start;">
-          <div class="card">
-            <h1 style="margin-bottom: 8px;">Register Your NFC Tag</h1>
-            <p style="margin-bottom: 20px;">Scan an NFC tag on a supported Android Chrome device and link it to your profile.</p>
-            <div class="card" style="margin-bottom: 16px;">
-              <strong>Current Tag ID</strong>
-              <div id="currentTagId" style="margin-top: 8px; color: var(--text-light);">Loading...</div>
+        
+        <!-- NFC CONNECT SECTION -->
+        <div class="nfc-section">
+          
+          <!-- STATUS CARD -->
+          <div class="nfc-card" id="nfcCard">
+            <div class="nfc-icon" id="nfcIcon">📵</div>
+            <h2 id="nfcTitle">Connect Your NFC Tag</h2>
+            <p id="nfcDesc">Link your physical NFC tag to your account so tapping it triggers SOS automatically.</p>
+            
+            <!-- Current tag status -->
+            <div class="tag-status" id="tagStatus" style="display:none">
+              <span class="tag-dot"></span>
+              <span id="tagIdDisplay"></span>
             </div>
-            <button id="scanNfcBtn" class="btn btn-primary btn-lg">Scan NFC Tag</button>
-            <div id="nfcStatus" style="margin-top: 16px;"></div>
+            
+            <!-- Buttons -->
+            <button class="btn-scan" id="scanBtn" onclick="startNFCScan()">
+              📡 Scan NFC Tag to Connect
+            </button>
+            <button class="btn-remove" id="removeBtn" onclick="removeNFCTag()" style="display:none">
+              🗑️ Remove Linked Tag
+            </button>
+            
+            <!-- Scanning animation -->
+            <div class="scan-animation" id="scanAnim" style="display:none">
+              <div class="ring ring1"></div>
+              <div class="ring ring2"></div>
+              <div class="ring ring3"></div>
+              <span>Hold NFC tag to back of phone...</span>
+            </div>
 
-            <div class="card" style="margin-top: 20px;">
-              <h3 style="margin-bottom: 8px;">Manual Tag Registration</h3>
-              <p style="margin-bottom: 16px;">If your browser does not support Web NFC, paste the tag ID here and save it to your profile.</p>
-              <div style="display: grid; gap: 12px;">
-                <div class="form-group" style="margin-bottom: 0;">
-                  <label for="manualTagId">Tag ID</label>
-                  <input id="manualTagId" type="text" placeholder="Enter tag ID" autocomplete="off">
-                </div>
-                <button id="registerTagBtn" class="btn btn-secondary">Save Tag ID</button>
-              </div>
+            <div id="nfcMessage"></div>
+          </div>
+
+          <!-- HOW IT WORKS -->
+          <div class="how-it-works">
+            <h3>How it works</h3>
+            <div class="step-item">
+              <span class="step-num">1</span>
+              <span>Click "Scan NFC Tag" button above</span>
+            </div>
+            <div class="step-item">
+              <span class="step-num">2</span>
+              <span>Hold your NFC sticker to the TOP BACK of your phone</span>
+            </div>
+            <div class="step-item">
+              <span class="step-num">3</span>
+              <span>Tag gets linked to your account automatically</span>
+            </div>
+            <div class="step-item">
+              <span class="step-num">4</span>
+              <span>Anyone tapping this tag triggers your SOS alert</span>
             </div>
           </div>
 
-          <div class="card">
-            <h2 style="margin-bottom: 8px;">How it works</h2>
-            <p>Your tag is tied to your profile. If someone scans it, the app can trigger a safety alert using your last known location.</p>
-            <div id="nfcFallback" class="alert alert-info hidden">
-              Web NFC is not supported in this browser. Use Android Chrome with NFC enabled to scan a tag.
-            </div>
-            <ol style="padding-left: 20px; color: var(--text-light); display: grid; gap: 10px;">
-              <li>Tap <strong>Scan NFC Tag</strong>.</li>
-              <li>Bring the tag close to the device.</li>
-              <li>The tag ID is saved to your profile.</li>
-            </ol>
-          </div>
         </div>
+
       </div>
     </section>
   </main>

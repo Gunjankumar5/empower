@@ -1120,3 +1120,180 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// ========== NFC REGISTRATION FUNCTIONALITY ==========
+
+const API_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://empower-backend-apo9.onrender.com/api';
+
+// Load existing tag on page open
+if (page === 'features') {
+  window.addEventListener('load', loadCurrentTag);
+}
+
+async function loadCurrentTag() {
+  try {
+    const res = await fetch(`${API_BASE}/profile`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    const data = await res.json();
+    const tagId = data.data?.nfcTagId;
+
+    if (tagId) {
+      showTagLinked(tagId);
+    }
+  } catch (err) {
+    console.error('Failed to load profile:', err);
+  }
+}
+
+async function startNFCScan() {
+  // Check Web NFC support
+  if (!('NDEFReader' in window)) {
+    showMessage(
+      '❌ Web NFC not supported on this browser. Use Chrome on Android.',
+      'error'
+    );
+    return;
+  }
+
+  const scanBtn = document.getElementById('scanBtn');
+  const scanAnim = document.getElementById('scanAnim');
+
+  try {
+    // Show scanning UI
+    scanBtn.disabled = true;
+    scanBtn.textContent = '📡 Scanning...';
+    scanAnim.style.display = 'flex';
+    document.getElementById('nfcIcon').textContent = '📡';
+    showMessage('Hold your NFC tag to the TOP BACK of your phone...', '');
+
+    const ndef = new NDEFReader();
+    await ndef.scan();
+
+    ndef.onreading = async (event) => {
+      // Tag detected!
+      const tagId = event.serialNumber || 
+                    event.message?.records?.[0]?.data || 
+                    generateTagId();
+
+      scanAnim.style.display = 'none';
+      showMessage('✅ Tag detected! Saving...', 'success');
+
+      // Save to backend
+      await saveTagToProfile(tagId);
+    };
+
+    ndef.onerror = (error) => {
+      scanAnim.style.display = 'none';
+      scanBtn.disabled = false;
+      scanBtn.textContent = '📡 Scan NFC Tag to Connect';
+      showMessage('❌ Scan failed: ' + error.message, 'error');
+    };
+
+  } catch (err) {
+    scanAnim.style.display = 'none';
+    scanBtn.disabled = false;
+    scanBtn.textContent = '📡 Scan NFC Tag to Connect';
+
+    if (err.name === 'NotAllowedError') {
+      showMessage('❌ NFC permission denied. Allow NFC access and try again.', 'error');
+    } else {
+      showMessage('❌ ' + err.message, 'error');
+    }
+  }
+}
+
+async function saveTagToProfile(tagId) {
+  try {
+    const res = await fetch(`${API_BASE}/profile/nfc`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({ nfcTagId: tagId })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      showTagLinked(tagId);
+      showMessage('✅ NFC tag linked successfully!', 'success');
+
+      // Also write URL to tag if possible
+      writeURLToTag(tagId);
+    } else {
+      throw new Error(data.error || 'Failed to save');
+    }
+  } catch (err) {
+    showMessage('❌ Failed to save tag: ' + err.message, 'error');
+    document.getElementById('scanBtn').disabled = false;
+    document.getElementById('scanBtn').textContent = '📡 Scan NFC Tag to Connect';
+  }
+}
+
+async function writeURLToTag(tagId) {
+  // After reading, also write your app URL to the tag
+  try {
+    const ndef = new NDEFReader();
+    const url = `https://empower-js3w.onrender.com/nfc.html?tag=${tagId}`;
+    await ndef.write({ records: [{ recordType: 'url', data: url }] });
+    showMessage('✅ Tag linked AND URL written to tag!', 'success');
+  } catch (err) {
+    // Writing failed but reading worked - still ok
+    console.log('URL write skipped:', err.message);
+  }
+}
+
+function showTagLinked(tagId) {
+  document.getElementById('nfcIcon').textContent = '✅';
+  document.getElementById('nfcTitle').textContent = 'NFC Tag Connected!';
+  document.getElementById('nfcDesc').textContent = 
+    'Your NFC tag is linked. Tapping it will trigger SOS automatically.';
+
+  const tagStatus = document.getElementById('tagStatus');
+  tagStatus.style.display = 'flex';
+  document.getElementById('tagIdDisplay').textContent = 
+    'Tag: ' + tagId.substring(0, 16) + '...';
+
+  document.getElementById('scanBtn').textContent = '🔄 Re-scan to Update Tag';
+  document.getElementById('scanBtn').disabled = false;
+  document.getElementById('removeBtn').style.display = 'block';
+}
+
+async function removeNFCTag() {
+  if (!confirm('Remove linked NFC tag?')) return;
+
+  try {
+    await fetch(`${API_BASE}/profile/nfc`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+
+    // Reset UI
+    document.getElementById('nfcIcon').textContent = '📵';
+    document.getElementById('nfcTitle').textContent = 'Connect Your NFC Tag';
+    document.getElementById('nfcDesc').textContent = 
+      'Link your physical NFC tag to trigger SOS automatically.';
+    document.getElementById('tagStatus').style.display = 'none';
+    document.getElementById('scanBtn').textContent = '📡 Scan NFC Tag to Connect';
+    document.getElementById('removeBtn').style.display = 'none';
+    showMessage('Tag removed successfully.', 'success');
+
+  } catch (err) {
+    showMessage('❌ Failed to remove tag', 'error');
+  }
+}
+
+function showMessage(msg, type) {
+  const el = document.getElementById('nfcMessage');
+  el.textContent = msg;
+  el.className = type === 'success' ? 'msg-success' : 
+                 type === 'error'   ? 'msg-error' : '';
+}
+
+function generateTagId() {
+  return 'tag_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}

@@ -76,9 +76,9 @@ router.patch('/', auth, async (req, res) => {
 
 router.post('/nfc', auth, async (req, res) => {
   try {
-    const tagId = String(req.body.tagId || '').trim();
+    const tagId = String(req.body.nfcTagId || req.body.tagId || '').trim();
     if (!tagId) {
-      return sendError(res, 'tagId is required', 400);
+      return sendError(res, 'nfcTagId is required', 400);
     }
 
     const user = await User.findById(req.user.id);
@@ -242,6 +242,26 @@ router.delete('/safe-zones/:zoneId', auth, async (req, res) => {
   } catch (error) {
     console.error('Delete safe zone error:', error);
     return sendError(res, 'Failed to delete safe zone', 500);
+  }
+});
+
+// DELETE /api/profile/nfc - Remove NFC tag
+router.delete('/nfc', auth, async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { nfcTagId: '' },
+      { new: true }
+    );
+
+    if (!user) {
+      return sendError(res, 'User not found', 404);
+    }
+
+    return sendSuccess(res, { message: 'NFC tag removed' });
+  } catch (error) {
+    console.error('Remove NFC error:', error);
+    return sendError(res, 'Failed to remove NFC tag', 500);
   }
 });
 
